@@ -18,11 +18,11 @@ pnpm install
 pnpm dev          # starts Vite dev server at http://localhost:5173
 ```
 
-To check formatting:
+To check/fix formatting:
 
 ```bash
-pnpm prettier --check "src/**/*.{ts,html,css}"
-pnpm prettier --write "src/**/*.{ts,html,css}"
+pnpm format:check   # check only (exits non-zero on violations)
+pnpm format         # auto-fix all violations
 ```
 
 ## Backend Setup
@@ -71,14 +71,25 @@ COOK_SECRET=<local-dev-secret>
 AWS_REGION=us-east-1
 ```
 
+## Cook View
+
+The cook view requires two query params appended to the hash:
+
+```
+http://localhost:5173/#/cook?batchId=<batchId>&cookSecret=<secret>
+```
+
+The `cookSecret` value must match the `COOK_SECRET` environment variable set in `backend/.env.local`.
+
 ## Validation Checklist
 
 Run this after any significant change to verify the setup is healthy:
 
 - [ ] `pnpm dev` starts without errors and loads the request form
-- [ ] `pnpm prettier --check "src/**/*.{ts,html,css}"` exits with code 0
+- [ ] `pnpm format:check` exits with code 0
 - [ ] `pytest tests/ --cov=src --cov-fail-under=80` passes
 - [ ] `pnpm cypress run` passes all E2E specs
 - [ ] The request form loads batch config from the API on startup
 - [ ] A test request can be submitted and a confirmation is displayed
-- [ ] The cook view loads and displays the ingredient list (with cook secret)
+- [ ] The cook view loads at `/#/cook?batchId=<id>&cookSecret=<secret>` and displays the ingredient list
+- [ ] Navigating to `/#/cook` without `cookSecret` shows the access-denied message

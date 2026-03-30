@@ -1,0 +1,43 @@
+# Node / frontend
+node_modules/
+dist/
+build/
+.cache/
+*.log
+.env
+.env.local
+.env.*.local
+
+# pnpm
+pnpm-debug.log*
+
+# Python / backend
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.eggs/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# AWS / deployment
+.aws-sam/
+.serverless/
+cdk.out/
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+# IDE
+.vscode/
+.idea/
+*.iml
