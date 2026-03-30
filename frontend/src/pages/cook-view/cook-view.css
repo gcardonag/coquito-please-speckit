@@ -1,0 +1,206 @@
+/* ---- Cook View — high-contrast, large font, easy-to-read ---- */
+
+:root {
+  --cook-font-size-base: 1.25rem; /* 20px minimum for ingredient names */
+  --cook-font-size-heading: 1.75rem;
+  --cook-font-size-lg: 1.5rem;
+  --cook-check-size: 2rem; /* 32px touch target checkbox + padding */
+}
+
+.cook-page {
+  background: #fff;
+  min-height: 100vh;
+  color: #111;
+}
+
+/* ---- Header ---- */
+
+.cook-header {
+  background: #1a1208;
+  color: #fdf6e3;
+  padding: 1.5rem var(--space-4);
+  text-align: center;
+}
+
+.cook-header__eyebrow {
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin: 0 0 var(--space-1);
+}
+
+.cook-header__title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  margin: 0 0 var(--space-1);
+}
+
+.cook-header__subtitle {
+  font-size: 0.95rem;
+  opacity: 0.75;
+  margin: 0;
+}
+
+/* ---- Preview banner ---- */
+
+.preview-banner {
+  background: #fff3cd;
+  border: 2px solid #f0ad4e;
+  border-radius: 0.5rem;
+  padding: var(--space-3) var(--space-5);
+  margin: var(--space-4) var(--space-4) 0;
+  color: #6b4e17;
+  font-size: var(--cook-font-size-base);
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ---- Main content ---- */
+
+.cook-main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+/* ---- Variety section ---- */
+
+.variety-section {
+  margin-bottom: var(--space-8);
+}
+
+.variety-section__heading {
+  font-size: var(--cook-font-size-heading);
+  font-weight: 700;
+  color: #1a1208;
+  border-bottom: 3px solid #1a1208;
+  padding-bottom: var(--space-2);
+  margin: 0 0 var(--space-4);
+}
+
+/* ---- Ingredient rows ---- */
+
+.ingredient-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredient-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid #ddd;
+  min-height: var(--touch-target);
+}
+
+.ingredient-row--acquired {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.ingredient-check {
+  width: var(--cook-check-size);
+  height: var(--cook-check-size);
+  min-width: var(--cook-check-size);
+  cursor: pointer;
+  accent-color: #1a6e3a;
+  flex-shrink: 0;
+}
+
+.ingredient-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  cursor: pointer;
+  font-size: var(--cook-font-size-base);
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.ingredient-name {
+  font-weight: 600;
+  color: #111;
+  min-width: 8rem;
+}
+
+.ingredient-qty {
+  font-size: var(--cook-font-size-lg);
+  font-weight: 700;
+  color: #1a1208;
+  white-space: nowrap;
+}
+
+.ingredient-category {
+  font-size: 0.875rem;
+  color: #666;
+  text-transform: capitalize;
+  margin-left: auto;
+}
+
+/* ---- Totals section ---- */
+
+.totals-section {
+  margin-top: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 3px solid #1a1208;
+}
+
+.totals-section__heading {
+  font-size: var(--cook-font-size-heading);
+  font-weight: 700;
+  color: #1a1208;
+  margin: 0 0 var(--space-4);
+}
+
+.totals-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--cook-font-size-base);
+}
+
+.totals-table th {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  background: #1a1208;
+  color: #fdf6e3;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.totals-table td {
+  padding: var(--space-3) var(--space-3);
+  border-bottom: 1px solid #ddd;
+  font-size: var(--cook-font-size-base);
+}
+
+.totals-table tr:nth-child(even) td {
+  background: #f8f8f8;
+}
+
+/* ---- Access denied ---- */
+
+.access-denied-card {
+  max-width: 480px;
+  margin: 4rem auto;
+  text-align: center;
+  padding: var(--space-8) var(--space-6);
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.access-denied-card__icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-3);
+}
+
+.access-denied-card__heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1208;
+  margin: 0 0 var(--space-3);
+}

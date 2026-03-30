@@ -11,3 +11,10 @@ Everything in it is non-negotiable.
 ## On Ambiguity
 If a spec is missing, incomplete, or conflicts with the constitution — stop and ask
 Do not infer. Do not proceed.
+
+## Active Technologies
+- TypeScript 5.x (frontend), Python 3.12 (backend Lambda) + Vite 5.x, pnpm 9.x, Prettier 3.x (frontend); boto3, AWS Lambda Powertools (backend) (001-coquito-request-app)
+- DynamoDB (requests, batches, varieties); S3 (static assets — images, icons) (001-coquito-request-app)
+
+## Recent Changes
+- 001-coquito-request-app: Added TypeScript 5.x (frontend), Python 3.12 (backend Lambda) + Vite 5.x, pnpm 9.x, Prettier 3.x (frontend); boto3, AWS Lambda Powertools (backend)
