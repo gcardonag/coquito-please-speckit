@@ -85,9 +85,16 @@ resource "aws_cognito_user_group" "authorized_user" {
 }
 
 resource "aws_cognito_user_pool_domain" "main" {
-  domain          = "auth.${var.domain}"
-  certificate_arn = var.certificate_arn
-  user_pool_id    = aws_cognito_user_pool.main.id
+  domain                = "auth.${var.domain}"
+  certificate_arn       = var.certificate_arn
+  user_pool_id          = aws_cognito_user_pool.main.id
+  managed_login_version = 2
+}
+
+resource "aws_cognito_managed_login_branding" "main" {
+  user_pool_id                = aws_cognito_user_pool.main.id
+  client_id                   = aws_cognito_user_pool_client.main.id
+  use_cognito_provided_values = true
 }
 
 # Store client secret in SSM — never in code or env vars

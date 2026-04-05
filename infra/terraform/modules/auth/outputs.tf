@@ -20,7 +20,7 @@ output "client_secret_ssm_path" {
 
 output "jwks_uri" {
   description = "JWKS endpoint for JWT validation"
-  value       = "https://cognito-idp.${data.aws_region.current.name}.amazonaws.com/${aws_cognito_user_pool.main.id}/.well-known/jwks.json"
+  value       = "https://cognito-idp.${data.aws_region.current.id}.amazonaws.com/${aws_cognito_user_pool.main.id}/.well-known/jwks.json"
 }
 
 output "token_endpoint" {
