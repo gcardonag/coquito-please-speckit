@@ -29,7 +29,13 @@ htmlcov/
 cdk.out/
 *.tfstate
 *.tfstate.backup
+*.tfstate.*.backup
 .terraform/
+.terraform.lock.hcl
+infra/terraform/prod.tfvars
+backend/dist/
+backend/lambda.zip
+/tmp/coquito-infra-outputs.json
 
 # OS
 .DS_Store

@@ -54,6 +54,7 @@ class Request:
     bottle_volume_ml: int | None = None
     created_at: str = ""
     updated_at: str = ""
+    requester_id: str = ""  # Cognito sub of the user who created this request
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "Request":
@@ -75,6 +76,7 @@ class Request:
             reminders=reminders,
             created_at=data.get("createdAt", ""),
             updated_at=data.get("updatedAt", ""),
+            requester_id=data.get("requesterId", ""),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -96,6 +98,8 @@ class Request:
         }
         if self.bottle_volume_ml is not None:
             result["bottleVolumeMl"] = self.bottle_volume_ml
+        if self.requester_id:
+            result["requesterId"] = self.requester_id
         return result
 
     @staticmethod

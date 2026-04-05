@@ -114,6 +114,7 @@ def _event(batch_id="b-cook-001", cook_secret="secret-sauce"):
     return {
         "pathParameters": {"batchId": batch_id},
         "headers": {"X-Cook-Secret": cook_secret},
+        "requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}},
     }
 
 
@@ -151,17 +152,22 @@ class TestGetIngredientList:
             result = handler(_event(), {})
         assert result["body"]["isFinalized"] is True
 
-    def test_returns_401_for_wrong_cook_secret(self, ddb_tables):
+    def test_returns_403_for_non_chef_role(self, ddb_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
-            result = handler(_event(cook_secret="wrong"), {})
-        assert result["statusCode"] == 401
-        assert result["body"]["code"] == "UNAUTHORIZED"
+            event = {
+                "pathParameters": {"batchId": "b-cook-001"},
+                "headers": {},
+                "requestContext": {"authorizer": {"lambda": {"role": "authorized-user", "userId": "u-001", "email": "u@example.com"}}},
+            }
+            result = handler(event, {})
+        assert result["statusCode"] == 403
+        assert result["body"]["code"] == "FORBIDDEN"
 
-    def test_returns_401_for_missing_cook_secret(self, ddb_tables):
+    def test_returns_403_for_missing_auth_context(self, ddb_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
             event = {"pathParameters": {"batchId": "b-cook-001"}, "headers": {}}
             result = handler(event, {})
-        assert result["statusCode"] == 401
+        assert result["statusCode"] == 403
 
     def test_returns_404_for_unknown_batch(self, ddb_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):

@@ -1,12 +1,11 @@
 """mark_ingredient_acquired — PATCH /api/v1/batches/{batchId}/ingredients/{ingredientId}/acquired
 
-Requires X-Cook-Secret header.
+Chef-only endpoint (role enforced by Lambda authorizer context).
 Updates the acquired state of an ingredient on the batch item.
 """
 from __future__ import annotations
 
 import json
-import os
 from datetime import UTC, datetime
 from typing import Any
 
@@ -25,12 +24,6 @@ def _response(status_code: int, body: Any) -> dict[str, Any]:
     return {"statusCode": status_code, "body": body}
 
 
-def _check_auth(event: dict[str, Any]) -> bool:
-    cook_secret = os.environ.get("COOK_SECRET", "")
-    provided = (event.get("headers") or {}).get("X-Cook-Secret", "")
-    return bool(cook_secret) and provided == cook_secret
-
-
 def _ingredient_exists(batch: Batch, ingredient_id: str) -> bool:
     """Check if ingredient_id is known in any of the batch's variety recipes."""
     for variety_id in batch.available_variety_ids:
@@ -45,8 +38,9 @@ def _ingredient_exists(batch: Batch, ingredient_id: str) -> bool:
 
 
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
-    if not _check_auth(event):
-        return _response(401, {"code": "UNAUTHORIZED", "message": "Missing or invalid cook secret"})
+    role = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {}).get("role", "")
+    if role != "chef":
+        return _response(403, {"code": "FORBIDDEN", "message": "Chef access required"})
 
     path_params = event.get("pathParameters") or {}
     batch_id: str = path_params.get("batchId", "")

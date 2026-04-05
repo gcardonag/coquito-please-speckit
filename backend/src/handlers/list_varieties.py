@@ -5,9 +5,10 @@ available in a specific batch.
 """
 from __future__ import annotations
 
-import json
 import os
 from typing import Any
+
+from aws_lambda_powertools import Logger
 
 from src.models.variety import Variety
 from src.services.dynamodb import (
@@ -17,6 +18,9 @@ from src.services.dynamodb import (
     batches_table_name,
     varieties_table_name,
 )
+
+
+logger = Logger(service="coquito-list-varieties")
 
 
 def _response(status_code: int, body: Any) -> dict[str, Any]:

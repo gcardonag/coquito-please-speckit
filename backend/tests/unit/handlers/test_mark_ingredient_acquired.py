@@ -68,6 +68,7 @@ def _event(batch_id="b-acq-001", ingredient_id="i-rum", acquired=True, cook_secr
         "pathParameters": {"batchId": batch_id, "ingredientId": ingredient_id},
         "headers": {"X-Cook-Secret": cook_secret},
         "body": json.dumps({"acquired": acquired}),
+        "requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}},
     }
 
 
@@ -93,10 +94,17 @@ class TestMarkIngredientAcquired:
         assert result["statusCode"] == 200
         assert result["body"]["acquired"] is False
 
-    def test_returns_401_for_wrong_secret(self, ddb_tables):
-        result = handler(_event(cook_secret="wrong"), {})
-        assert result["statusCode"] == 401
-        assert result["body"]["code"] == "UNAUTHORIZED"
+    def test_returns_403_for_non_chef_role(self, ddb_tables):
+        import json as _json  # noqa: PLC0415
+        event = {
+            "pathParameters": {"batchId": "b-acq-001", "ingredientId": "i-rum"},
+            "headers": {},
+            "body": _json.dumps({"acquired": True}),
+            "requestContext": {"authorizer": {"lambda": {"role": "authorized-user", "userId": "u-001", "email": "u@example.com"}}},
+        }
+        result = handler(event, {})
+        assert result["statusCode"] == 403
+        assert result["body"]["code"] == "FORBIDDEN"
 
     def test_returns_404_for_unknown_ingredient(self, ddb_tables):
         result = handler(_event(ingredient_id="i-unknown"), {})

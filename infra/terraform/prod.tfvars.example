@@ -1,0 +1,8 @@
+# Copy this file to prod.tfvars and fill in actual values.
+# prod.tfvars is git-ignored — never commit it.
+
+domain          = "coquito.gcardona.me"
+region          = "us-east-1"
+environment     = "prod"
+hosted_zone_id  = "REPLACE_WITH_YOUR_ROUTE53_HOSTED_ZONE_ID"
+chef_seed_email = "chef@example.com"

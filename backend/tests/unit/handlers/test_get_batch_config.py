@@ -53,9 +53,12 @@ def ddb_tables():
         yield {"batches": batches_table, "varieties": varieties_table}
 
 
+_CHEF_CTX = {"requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}}}
+
+
 class TestGetBatchConfig:
     def test_returns_batch_with_resolved_varieties(self, ddb_tables):
-        event = {"pathParameters": {"batchId": "b-001"}}
+        event = {"pathParameters": {"batchId": "b-001"}, **_CHEF_CTX}
         result = handler(event, {})
         assert result["statusCode"] == 200
         body = result["body"]
@@ -66,13 +69,13 @@ class TestGetBatchConfig:
         assert body["availableVarieties"][0]["name"] == "Classic"
 
     def test_variety_image_url_is_resolved(self, ddb_tables):
-        event = {"pathParameters": {"batchId": "b-001"}}
+        event = {"pathParameters": {"batchId": "b-001"}, **_CHEF_CTX}
         result = handler(event, {})
         variety = result["body"]["availableVarieties"][0]
         assert variety["imageUrl"].startswith("https://assets.example.com")
 
     def test_returns_404_for_unknown_batch(self, ddb_tables):
-        event = {"pathParameters": {"batchId": "nonexistent"}}
+        event = {"pathParameters": {"batchId": "nonexistent"}, **_CHEF_CTX}
         result = handler(event, {})
         assert result["statusCode"] == 404
         assert result["body"]["code"] == "BATCH_NOT_FOUND"

@@ -67,6 +67,9 @@ def _schedule_reminders(
 
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     """Lambda handler for POST /api/v1/requests."""
+    # Extract the caller's userId from the authorizer context for ownership tracking
+    caller_id: str = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {}).get("userId", "")
+
     try:
         body: dict[str, Any] = json.loads(event.get("body") or "{}")
     except json.JSONDecodeError:
@@ -154,6 +157,7 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
         reminders=reminders,
         created_at=now,
         updated_at=now,
+        requester_id=caller_id,  # T052: store Cognito sub for ownership checks
     )
 
     item = req.to_dict()

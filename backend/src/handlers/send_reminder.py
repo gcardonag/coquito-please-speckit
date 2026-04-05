@@ -21,6 +21,12 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     if isinstance(event, str):
         event = json.loads(event)
 
+    # When invoked via API Gateway (POST /api/v1/requests/{id}/reminder), enforce Chef role
+    if "requestContext" in event:
+        role = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {}).get("role", "")
+        if role != "chef":
+            return {"statusCode": 403, "body": json.dumps({"code": "FORBIDDEN", "message": "Chef access required"})}
+
     request_id: str = event.get("requestId", "")
     reminder_id: str = event.get("reminderId", "")
     days_until: int = int(event.get("daysUntil", 7))
