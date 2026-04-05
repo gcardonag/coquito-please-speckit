@@ -32,3 +32,23 @@ output "s3_bucket_name" {
   description = "S3 bucket name for frontend assets"
   value       = module.frontend.bucket_name
 }
+
+output "dynamodb_requests_table" {
+  description = "DynamoDB requests table name"
+  value       = module.storage.requests_table_name
+}
+
+output "dynamodb_batches_table" {
+  description = "DynamoDB batches table name"
+  value       = module.storage.batches_table_name
+}
+
+output "dynamodb_varieties_table" {
+  description = "DynamoDB varieties table name"
+  value       = module.storage.varieties_table_name
+}
+
+output "cloudfront_assets_base_url" {
+  description = "Base URL for CloudFront-served variety images"
+  value       = module.storage.cloudfront_assets_base_url
+}

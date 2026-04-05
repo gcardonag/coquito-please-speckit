@@ -1,3 +1,10 @@
+module "storage" {
+  source = "./modules/storage"
+
+  environment = var.environment
+  domain      = var.domain
+}
+
 module "acm" {
   source = "./modules/acm"
 
@@ -32,16 +39,20 @@ module "api" {
   cognito_client_secret_ssm_path = module.auth.client_secret_ssm_path
   cognito_jwks_uri               = module.auth.jwks_uri
   cognito_token_endpoint         = module.auth.token_endpoint
+  dynamodb_requests_table        = module.storage.requests_table_name
+  dynamodb_batches_table         = module.storage.batches_table_name
+  dynamodb_varieties_table       = module.storage.varieties_table_name
+  cloudfront_assets_base_url     = module.storage.cloudfront_assets_base_url
 }
 
 module "dns" {
   source = "./modules/dns"
 
-  domain                          = var.domain
-  hosted_zone_id                  = var.hosted_zone_id
-  cloudfront_domain_name          = module.frontend.cloudfront_domain_name
-  cloudfront_hosted_zone_id       = module.frontend.cloudfront_hosted_zone_id
-  api_target_domain_name          = module.api.target_domain_name
-  api_hosted_zone_id              = module.api.hosted_zone_id
+  domain                           = var.domain
+  hosted_zone_id                   = var.hosted_zone_id
+  cloudfront_domain_name           = module.frontend.cloudfront_domain_name
+  cloudfront_hosted_zone_id        = module.frontend.cloudfront_hosted_zone_id
+  api_target_domain_name           = module.api.target_domain_name
+  api_hosted_zone_id               = module.api.hosted_zone_id
   cognito_auth_domain_alias_target = module.auth.auth_domain_alias_target
 }

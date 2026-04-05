@@ -48,3 +48,23 @@ variable "lambda_zip_path" {
   type        = string
   default     = "../../backend/lambda.zip"
 }
+
+variable "dynamodb_requests_table" {
+  description = "DynamoDB requests table name"
+  type        = string
+}
+
+variable "dynamodb_batches_table" {
+  description = "DynamoDB batches table name"
+  type        = string
+}
+
+variable "dynamodb_varieties_table" {
+  description = "DynamoDB varieties table name"
+  type        = string
+}
+
+variable "cloudfront_assets_base_url" {
+  description = "CloudFront base URL for media assets (e.g., https://coquito.gcardona.me)"
+  type        = string
+}

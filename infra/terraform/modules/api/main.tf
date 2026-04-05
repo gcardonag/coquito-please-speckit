@@ -1,6 +1,6 @@
 locals {
-  lambda_runtime    = "python3.12"
-  lambda_zip        = var.lambda_zip_path
+  lambda_runtime        = "python3.12"
+  lambda_zip            = var.lambda_zip_path
   lambda_handler_prefix = "src.handlers"
 }
 
@@ -155,11 +155,11 @@ resource "aws_lambda_function" "auth_token_exchange" {
 
   environment {
     variables = {
-      COGNITO_CLIENT_ID    = var.cognito_client_id
-      SSM_CLIENT_SECRET    = var.cognito_client_secret_ssm_path
-      TOKEN_ENDPOINT       = var.cognito_token_endpoint
-      REDIRECT_URI         = "https://${var.domain}/auth/callback"
-      ENVIRONMENT          = var.environment
+      COGNITO_CLIENT_ID = var.cognito_client_id
+      SSM_CLIENT_SECRET = var.cognito_client_secret_ssm_path
+      TOKEN_ENDPOINT    = var.cognito_token_endpoint
+      REDIRECT_URI      = "https://${var.domain}/auth/callback"
+      ENVIRONMENT       = var.environment
     }
   }
 }
@@ -211,7 +211,12 @@ resource "aws_lambda_function" "health" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -223,7 +228,13 @@ resource "aws_lambda_function" "list_varieties" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT                = var.environment
+      DYNAMODB_REQUESTS_TABLE    = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE     = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE   = var.dynamodb_varieties_table
+      CLOUDFRONT_ASSETS_BASE_URL = var.cloudfront_assets_base_url
+    }
   }
 }
 
@@ -235,7 +246,12 @@ resource "aws_lambda_function" "create_request" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -247,7 +263,12 @@ resource "aws_lambda_function" "get_request" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -259,7 +280,12 @@ resource "aws_lambda_function" "update_request" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -271,7 +297,12 @@ resource "aws_lambda_function" "cancel_request" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -283,7 +314,12 @@ resource "aws_lambda_function" "get_batch_config" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -295,7 +331,12 @@ resource "aws_lambda_function" "get_ingredient_list" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -307,7 +348,12 @@ resource "aws_lambda_function" "mark_ingredient_acquired" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -319,7 +365,12 @@ resource "aws_lambda_function" "send_reminder" {
   filename      = local.lambda_zip
   timeout       = 10
   environment {
-    variables = { ENVIRONMENT = var.environment }
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
   }
 }
 
@@ -332,8 +383,11 @@ resource "aws_lambda_function" "create_user" {
   timeout       = 10
   environment {
     variables = {
-      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
-      ENVIRONMENT          = var.environment
+      COGNITO_USER_POOL_ID     = var.cognito_user_pool_id
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
     }
   }
 }
@@ -343,17 +397,17 @@ resource "aws_lambda_function" "create_user" {
 # ---------------------------------------------------------------------------
 locals {
   protected_functions = {
-    health                  = aws_lambda_function.health
-    list_varieties          = aws_lambda_function.list_varieties
-    create_request          = aws_lambda_function.create_request
-    get_request             = aws_lambda_function.get_request
-    update_request          = aws_lambda_function.update_request
-    cancel_request          = aws_lambda_function.cancel_request
-    get_batch_config        = aws_lambda_function.get_batch_config
-    get_ingredient_list     = aws_lambda_function.get_ingredient_list
+    health                   = aws_lambda_function.health
+    list_varieties           = aws_lambda_function.list_varieties
+    create_request           = aws_lambda_function.create_request
+    get_request              = aws_lambda_function.get_request
+    update_request           = aws_lambda_function.update_request
+    cancel_request           = aws_lambda_function.cancel_request
+    get_batch_config         = aws_lambda_function.get_batch_config
+    get_ingredient_list      = aws_lambda_function.get_ingredient_list
     mark_ingredient_acquired = aws_lambda_function.mark_ingredient_acquired
-    send_reminder           = aws_lambda_function.send_reminder
-    create_user             = aws_lambda_function.create_user
+    send_reminder            = aws_lambda_function.send_reminder
+    create_user              = aws_lambda_function.create_user
   }
   public_functions = {
     auth_token_exchange = aws_lambda_function.auth_token_exchange
