@@ -88,15 +88,17 @@ class TestRequestManagementIntegration:
         deleted = []
         created = []
 
+        chef_event = {
+            "pathParameters": {"requestId": "req-int-mgmt-001"},
+            "body": json.dumps({"pickupDate": "2026-12-22"}),
+            "requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}},
+        }
         with patch("src.handlers.update_request._today", return_value=date(2026, 11, 1)):
             with patch("src.services.scheduler.delete_schedule",
                        side_effect=lambda name: deleted.append(name)):
                 with patch("src.services.scheduler.create_one_time_schedule",
                            side_effect=lambda **kwargs: created.append(kwargs) or "arn:new"):
-                    result = update_handler({
-                        "pathParameters": {"requestId": "req-int-mgmt-001"},
-                        "body": json.dumps({"pickupDate": "2026-12-22"}),
-                    }, {})
+                    result = update_handler(chef_event, {})
 
         assert result["statusCode"] == 200
         assert result["body"]["pickupDate"] == "2026-12-22"

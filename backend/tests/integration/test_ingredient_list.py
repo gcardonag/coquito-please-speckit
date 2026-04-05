@@ -95,12 +95,19 @@ def seeded_tables():
 
 
 class TestIngredientListIntegration:
+    def _chef_event(self, base: dict) -> dict:
+        """Inject Chef authorizer context into an event dict."""
+        return {
+            **base,
+            "requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}},
+        }
+
     def test_quantities_multiplied_per_variety(self, seeded_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
-            result = get_ingredients({
+            result = get_ingredients(self._chef_event({
                 "pathParameters": {"batchId": "b-int-cook"},
                 "headers": {"X-Cook-Secret": "int-secret"},
-            }, {})
+            }), {})
 
         assert result["statusCode"] == 200
         body = result["body"]
@@ -119,11 +126,11 @@ class TestIngredientListIntegration:
 
     def test_mark_acquired_persists_to_dynamodb(self, seeded_tables):
         import json
-        result = mark_acquired({
+        result = mark_acquired(self._chef_event({
             "pathParameters": {"batchId": "b-int-cook", "ingredientId": "i-rum"},
             "headers": {"X-Cook-Secret": "int-secret"},
             "body": json.dumps({"acquired": True}),
-        }, {})
+        }), {})
 
         assert result["statusCode"] == 200
         item = seeded_tables["batches"].get_item(Key={"batchId": "b-int-cook"})["Item"]

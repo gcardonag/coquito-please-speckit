@@ -8,4 +8,14 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
   },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.test.ts'],
+    },
+  },
 });

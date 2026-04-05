@@ -1,11 +1,10 @@
 """get_ingredient_list — GET /api/v1/batches/{batchId}/ingredients
 
-Requires X-Cook-Secret header.
+Chef-only endpoint (role enforced by Lambda authorizer context).
 Aggregates ingredient quantities across all CONFIRMED requests in the batch.
 """
 from __future__ import annotations
 
-import os
 from collections import defaultdict
 from datetime import date
 from typing import Any
@@ -30,15 +29,10 @@ def _response(status_code: int, body: Any) -> dict[str, Any]:
     return {"statusCode": status_code, "body": body}
 
 
-def _check_auth(event: dict[str, Any]) -> bool:
-    cook_secret = os.environ.get("COOK_SECRET", "")
-    provided = (event.get("headers") or {}).get("X-Cook-Secret", "")
-    return bool(cook_secret) and provided == cook_secret
-
-
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
-    if not _check_auth(event):
-        return _response(401, {"code": "UNAUTHORIZED", "message": "Missing or invalid cook secret"})
+    role = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {}).get("role", "")
+    if role != "chef":
+        return _response(403, {"code": "FORBIDDEN", "message": "Chef access required"})
 
     batch_id: str = (event.get("pathParameters") or {}).get("batchId", "")
 
