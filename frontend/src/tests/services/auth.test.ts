@@ -96,7 +96,9 @@ describe('auth service', () => {
 
   describe('logout', () => {
     it('calls POST /auth/logout', async () => {
-      const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(new Response(null, { status: 200 }));
+      const fetchSpy = vi
+        .spyOn(global, 'fetch')
+        .mockResolvedValue(new Response(null, { status: 200 }));
 
       // Prevent redirectToLogin from actually navigating
       Object.defineProperty(window, 'location', {

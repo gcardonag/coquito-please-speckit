@@ -174,7 +174,8 @@ function renderLogoutButton(): void {
   const btn = document.createElement('button');
   btn.id = 'logout-btn';
   btn.textContent = 'Log out';
-  btn.style.cssText = 'position:fixed;bottom:1rem;right:1rem;padding:0.5rem 1rem;cursor:pointer;z-index:9998';
+  btn.style.cssText =
+    'position:fixed;bottom:1rem;right:1rem;padding:0.5rem 1rem;cursor:pointer;z-index:9998';
   btn.addEventListener('click', () => logout());
   document.body.appendChild(btn);
 }
