@@ -33,6 +33,7 @@ cdk.out/
 .terraform/
 .terraform.lock.hcl
 infra/terraform/prod.tfvars
+backend/package/
 backend/dist/
 backend/lambda.zip
 /tmp/coquito-infra-outputs.json
@@ -47,3 +48,5 @@ Thumbs.db
 .vscode/
 .idea/
 *.iml
+
+.env.production

@@ -18,6 +18,8 @@ Do not infer. Do not proceed.
 - Python 3.12 (backend Lambda), TypeScript 5.x (frontend) + boto3, AWS Lambda Powertools (backend); Vite 5.x, pnpm 9.x, Prettier 3.x (frontend); Terraform hashicorp/aws v6.39.0 (infra) (002-aws-deploy-auth)
 - DynamoDB (existing tables, unchanged); Cognito User Pool (new, user identity) (002-aws-deploy-auth)
 - uv (Python package management)
+- Python 3.12 (backend Lambda), TypeScript 5.x (frontend), HCL (Terraform) + boto3 (DynamoDB access), AWS Lambda Powertools (logging), hashicorp/aws ~> 6.39 (003-aws-website-storage)
+- DynamoDB (PAY_PER_REQUEST, AWS owned key SSE), S3 (existing frontend bucket for media assets) (003-aws-website-storage)
 
 ## Recent Changes
 - 001-coquito-request-app: Added TypeScript 5.x (frontend), Python 3.12 (backend Lambda) + Vite 5.x, pnpm 9.x, Prettier 3.x (frontend); boto3, AWS Lambda Powertools (backend)
