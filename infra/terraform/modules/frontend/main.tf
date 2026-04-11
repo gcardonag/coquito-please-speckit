@@ -69,17 +69,11 @@ resource "aws_cloudfront_distribution" "main" {
     viewer_protocol_policy = "redirect-to-https"
     compress               = true
 
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
-      }
-    }
-
-    min_ttl     = 0
-    default_ttl = 86400
-    max_ttl     = 31536000
+    cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6" # Caching Optimized
   }
+  
+  # This is set directly for now since CloudFront creates this on our behalf via their Flat-Rate offering
+  web_acl_id = "arn:aws:wafv2:us-east-1:559050209940:global/webacl/CreatedByCloudFront-1ce20057/2f51439f-d25f-4a58-96ec-2e3a7b6913e7"
 
   # SPA routing: 403/404 from S3 → 200 /index.html
   custom_error_response {
