@@ -2,6 +2,18 @@ locals {
   lambda_runtime        = "python3.12"
   lambda_zip            = var.lambda_zip_path
   lambda_handler_prefix = "src.handlers"
+  lambda_architectures  = ["arm64"]
+}
+
+# ---------------------------------------------------------------------------
+# Lambda Layer — Python dependencies (arm64, Amazon Linux 2023)
+# ---------------------------------------------------------------------------
+resource "aws_lambda_layer_version" "deps" {
+  layer_name               = "coquito-deps-${var.environment}"
+  filename                 = var.lambda_layer_zip_path
+  source_code_hash         = filebase64sha256(var.lambda_layer_zip_path)
+  compatible_runtimes      = ["python3.12"]
+  compatible_architectures = ["arm64"]
 }
 
 # ---------------------------------------------------------------------------
@@ -110,8 +122,11 @@ resource "aws_lambda_function" "authorizer" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.auth.authorizer.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
 
   environment {
     variables = {
@@ -150,8 +165,11 @@ resource "aws_lambda_function" "auth_token_exchange" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.auth.token_exchange.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 15
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
 
   environment {
     variables = {
@@ -169,8 +187,11 @@ resource "aws_lambda_function" "auth_logout" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.auth.logout.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
 
   environment {
     variables = {
@@ -187,8 +208,11 @@ resource "aws_lambda_function" "auth_refresh" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.auth.refresh.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
 
   environment {
     variables = {
@@ -208,8 +232,11 @@ resource "aws_lambda_function" "health" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.health.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -225,8 +252,11 @@ resource "aws_lambda_function" "list_varieties" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.list_varieties.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT                = var.environment
@@ -243,8 +273,11 @@ resource "aws_lambda_function" "create_request" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.create_request.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -260,8 +293,11 @@ resource "aws_lambda_function" "get_request" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.get_request.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -277,8 +313,11 @@ resource "aws_lambda_function" "update_request" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.update_request.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -294,8 +333,11 @@ resource "aws_lambda_function" "cancel_request" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.cancel_request.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -311,8 +353,11 @@ resource "aws_lambda_function" "get_batch_config" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.get_batch_config.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -328,8 +373,11 @@ resource "aws_lambda_function" "get_ingredient_list" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.get_ingredient_list.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -345,8 +393,11 @@ resource "aws_lambda_function" "mark_ingredient_acquired" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.mark_ingredient_acquired.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -362,8 +413,11 @@ resource "aws_lambda_function" "send_reminder" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.send_reminder.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       ENVIRONMENT              = var.environment
@@ -379,8 +433,11 @@ resource "aws_lambda_function" "create_user" {
   role          = aws_iam_role.lambda_exec.arn
   runtime       = local.lambda_runtime
   handler       = "${local.lambda_handler_prefix}.create_user.handler"
-  filename      = local.lambda_zip
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
   timeout       = 10
+  architectures = local.lambda_architectures
+  layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
       COGNITO_USER_POOL_ID     = var.cognito_user_pool_id

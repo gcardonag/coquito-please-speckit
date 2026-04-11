@@ -44,9 +44,15 @@ variable "cognito_token_endpoint" {
 }
 
 variable "lambda_zip_path" {
-  description = "Local path to the packaged Lambda ZIP file"
+  description = "Local path to the packaged Lambda ZIP file (source code only)"
   type        = string
   default     = "../../backend/lambda.zip"
+}
+
+variable "lambda_layer_zip_path" {
+  description = "Local path to the Lambda layer ZIP file (Python dependencies, arm64)"
+  type        = string
+  default     = "../../backend/layer.zip"
 }
 
 variable "dynamodb_requests_table" {

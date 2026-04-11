@@ -36,6 +36,7 @@ infra/terraform/prod.tfvars
 backend/package/
 backend/dist/
 backend/lambda.zip
+backend/layer.zip
 /tmp/coquito-infra-outputs.json
 
 # OS
