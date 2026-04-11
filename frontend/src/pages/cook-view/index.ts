@@ -1,27 +1,21 @@
 import './cook-view.css';
-import { getIngredientList, markIngredientAcquired, ApiRequestError } from '../../services/api';
+import { getIngredientList, markIngredientAcquired } from '../../services/api';
 import { createIngredientList } from '../../components/ingredient-list/ingredient-list';
 
 // ---------------------------------------------------------------------------
 // Cook View page — ingredient shopping list for the cook
-// Reads cookSecret and batchId from URL query params (appended to hash)
+// Reads batchId from URL query params (appended to hash)
 // ---------------------------------------------------------------------------
 
 export function mountCookView(container: HTMLElement): void {
-  // Parse query params from the hash: /#/cook?batchId=xxx&cookSecret=yyy
+  // Parse query params from the hash: /#/cook?batchId=xxx
   const search = window.location.hash.split('?')[1] ?? '';
   const params = new URLSearchParams(search);
-  const cookSecret = params.get('cookSecret') ?? '';
   const batchId = params.get('batchId') ?? '';
-
-  if (!cookSecret) {
-    container.innerHTML = renderAccessDenied();
-    return;
-  }
 
   container.innerHTML = renderLoading();
 
-  getIngredientList(batchId, cookSecret)
+  getIngredientList(batchId)
     .then((data) => {
       container.innerHTML = '';
 
@@ -56,7 +50,7 @@ export function mountCookView(container: HTMLElement): void {
         byVariety: data.byVariety,
         totals: data.totals,
         onToggleAcquired: (ingredientId, acquired) => {
-          markIngredientAcquired(batchId, ingredientId, acquired, cookSecret).catch(() => {
+          markIngredientAcquired(batchId, ingredientId, acquired).catch(() => {
             // best-effort; checkbox state already updated optimistically
           });
         },
@@ -66,17 +60,13 @@ export function mountCookView(container: HTMLElement): void {
       page.appendChild(main);
       container.appendChild(page);
     })
-    .catch((err: unknown) => {
-      if (err instanceof ApiRequestError && err.status === 401) {
-        container.innerHTML = renderAccessDenied();
-      } else {
-        container.innerHTML = `
-          <div class="page-wrapper">
-            <div class="card form-error" role="alert">
-              Oops! No se pudo cargar la lista. Please try again later.
-            </div>
-          </div>`;
-      }
+    .catch(() => {
+      container.innerHTML = `
+        <div class="page-wrapper">
+          <div class="card form-error" role="alert">
+            Oops! No se pudo cargar la lista. Please try again later.
+          </div>
+        </div>`;
     });
 }
 
@@ -87,16 +77,6 @@ function renderLoading(): string {
     </div>`;
 }
 
-function renderAccessDenied(): string {
-  return `
-    <div class="page-wrapper">
-      <div class="access-denied-card" data-cy="access-denied">
-        <div class="access-denied-card__icon" aria-hidden="true">🔒</div>
-        <h1 class="access-denied-card__heading">Access Denied</h1>
-        <p>This page requires a valid cook secret. Please use the link provided by el jefe del coquito.</p>
-      </div>
-    </div>`;
-}
 
 function escapeHtml(str: string): string {
   return str

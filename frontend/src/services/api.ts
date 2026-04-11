@@ -125,6 +125,7 @@ export interface IngredientListResponse {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${BASE_URL}${path}`;
   const response = await fetch(url, {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers ?? {}),
@@ -156,7 +157,7 @@ export function listVarieties(batchId?: string): Promise<{ varieties: VarietySum
 }
 
 export function getBatchConfig(batchId: string): Promise<BatchConfig> {
-  return request(`/batches/${encodeURIComponent(batchId)}`);
+  return request(`/batches/${encodeURIComponent(batchId)}/config`);
 }
 
 export function createRequest(payload: CreateRequestPayload): Promise<RequestResponse> {
@@ -183,32 +184,25 @@ export function updateRequest(
 export function cancelRequest(
   requestId: string
 ): Promise<{ requestId: string; status: 'CANCELLED'; cancelledAt: string }> {
-  return request(`/requests/${encodeURIComponent(requestId)}`, {
-    method: 'DELETE',
+  return request(`/requests/${encodeURIComponent(requestId)}/cancel`, {
+    method: 'POST',
   });
 }
 
-export function getIngredientList(
-  batchId: string,
-  cookSecret: string
-): Promise<IngredientListResponse> {
-  return request(`/batches/${encodeURIComponent(batchId)}/ingredients`, {
-    headers: { 'X-Cook-Secret': cookSecret },
-  });
+export function getIngredientList(batchId: string): Promise<IngredientListResponse> {
+  return request(`/batches/${encodeURIComponent(batchId)}/ingredients`);
 }
 
 export function markIngredientAcquired(
   batchId: string,
   ingredientId: string,
-  acquired: boolean,
-  cookSecret: string
+  acquired: boolean
 ): Promise<{ ingredientId: string; acquired: boolean; updatedAt: string }> {
   return request(
     `/batches/${encodeURIComponent(batchId)}/ingredients/${encodeURIComponent(ingredientId)}/acquired`,
     {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify({ acquired }),
-      headers: { 'X-Cook-Secret': cookSecret },
     }
   );
 }
