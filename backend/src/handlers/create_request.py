@@ -28,7 +28,7 @@ from src.services import scheduler as scheduler_svc
 
 
 def _response(status_code: int, body: Any) -> dict[str, Any]:
-    return {"statusCode": status_code, "body": body}
+    return {"statusCode": status_code, "body": json.dumps(body)}
 
 
 def _schedule_reminders(

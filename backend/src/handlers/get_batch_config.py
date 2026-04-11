@@ -1,4 +1,4 @@
-"""get_batch_config — GET /api/v1/batches/{batchId}
+"""get_batch_config — GET /api/v1/batches/{id}
 
 Returns batch configuration including resolved variety summaries.
 """
@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 from typing import Any
+import json
 
 from src.models.batch import Batch
 from src.models.variety import Variety
@@ -18,16 +19,13 @@ from src.services.dynamodb import (
 
 
 def _response(status_code: int, body: Any) -> dict[str, Any]:
-    return {"statusCode": status_code, "body": body}
+    return {"statusCode": status_code, "body": json.dumps(body)}
 
 
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
-    """Lambda handler for GET /api/v1/batches/{batchId}."""
-    role = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {}).get("role", "")
-    if role != "chef":
-        return _response(403, {"code": "FORBIDDEN", "message": "Chef access required"})
+    """Lambda handler for GET /api/v1/batches/{id}."""
 
-    batch_id: str = (event.get("pathParameters") or {}).get("batchId", "")
+    batch_id: str = (event.get("pathParameters") or {}).get("id", "")
     cloudfront_base = os.environ.get("CLOUDFRONT_ASSETS_BASE_URL", "")
 
     try:

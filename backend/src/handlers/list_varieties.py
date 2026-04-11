@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 from typing import Any
+import json
 
 from aws_lambda_powertools import Logger
 
@@ -24,7 +25,7 @@ logger = Logger(service="coquito-list-varieties")
 
 
 def _response(status_code: int, body: Any) -> dict[str, Any]:
-    return {"statusCode": status_code, "body": body}
+    return {"statusCode": status_code, "body": json.dumps(body)}
 
 
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:

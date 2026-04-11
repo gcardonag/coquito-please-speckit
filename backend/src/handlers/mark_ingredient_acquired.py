@@ -1,4 +1,4 @@
-"""mark_ingredient_acquired — PATCH /api/v1/batches/{batchId}/ingredients/{ingredientId}/acquired
+"""mark_ingredient_acquired — PATCH /api/v1/batches/{id}/ingredients/{ingredientId}/acquired
 
 Chef-only endpoint (role enforced by Lambda authorizer context).
 Updates the acquired state of an ingredient on the batch item.
@@ -21,7 +21,7 @@ from src.services.dynamodb import (
 
 
 def _response(status_code: int, body: Any) -> dict[str, Any]:
-    return {"statusCode": status_code, "body": body}
+    return {"statusCode": status_code, "body": json.dumps(body)}
 
 
 def _ingredient_exists(batch: Batch, ingredient_id: str) -> bool:
@@ -43,8 +43,8 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
         return _response(403, {"code": "FORBIDDEN", "message": "Chef access required"})
 
     path_params = event.get("pathParameters") or {}
-    batch_id: str = path_params.get("batchId", "")
-    ingredient_id: str = path_params.get("ingredientId", "")
+    batch_id: str = path_params.get("id", "")
+    ingredient_id: str = path_params.get("ingredId", "")
 
     try:
         body: dict[str, Any] = json.loads(event.get("body") or "{}")

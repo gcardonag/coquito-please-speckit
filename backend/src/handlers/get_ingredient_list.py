@@ -1,4 +1,4 @@
-"""get_ingredient_list — GET /api/v1/batches/{batchId}/ingredients
+"""get_ingredient_list — GET /api/v1/batches/{id}/ingredients
 
 Chef-only endpoint (role enforced by Lambda authorizer context).
 Aggregates ingredient quantities across all CONFIRMED requests in the batch.
@@ -8,6 +8,7 @@ from __future__ import annotations
 from collections import defaultdict
 from datetime import date
 from typing import Any
+import json
 
 from src.models.batch import Batch
 from src.models.variety import Variety
@@ -26,7 +27,7 @@ def _today() -> date:
 
 
 def _response(status_code: int, body: Any) -> dict[str, Any]:
-    return {"statusCode": status_code, "body": body}
+    return {"statusCode": status_code, "body": json.dumps(body)}
 
 
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
@@ -34,7 +35,7 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     if role != "chef":
         return _response(403, {"code": "FORBIDDEN", "message": "Chef access required"})
 
-    batch_id: str = (event.get("pathParameters") or {}).get("batchId", "")
+    batch_id: str = (event.get("pathParameters") or {}).get("id", "")
 
     try:
         batch_item = get_item(batches_table_name(), {"batchId": batch_id})
