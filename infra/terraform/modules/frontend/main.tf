@@ -50,6 +50,37 @@ resource "aws_s3_bucket_policy" "main" {
   })
 }
 
+resource "aws_cloudfront_response_headers_policy" "main" {
+  name = "CoquitoCORS"
+  comment = "For CoquitoPlease Auth and API"
+
+  cors_config {
+    access_control_allow_credentials = true
+    access_control_max_age_sec = 600
+    origin_override = true
+    access_control_allow_headers {
+      items = [ "Cookie" ]
+    }
+
+    access_control_allow_methods {
+      items = [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST",
+        "PUT"
+      ]
+    }
+
+    access_control_allow_origins {
+      items = [
+        "api.${var.domain}",
+        "auth.${var.domain}"
+      ]
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "main" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -70,10 +101,11 @@ resource "aws_cloudfront_distribution" "main" {
     compress               = true
 
     cache_policy_id = "658327ea-f89d-4fab-a63d-7e88639e58f6" # Caching Optimized
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.main.id
   }
   
   # This is set directly for now since CloudFront creates this on our behalf via their Flat-Rate offering
-  web_acl_id = "arn:aws:wafv2:us-east-1:559050209940:global/webacl/CreatedByCloudFront-1ce20057/2f51439f-d25f-4a58-96ec-2e3a7b6913e7"
+  # web_acl_id = "arn:aws:wafv2:us-east-1:559050209940:global/webacl/CreatedByCloudFront-1ce20057/2f51439f-d25f-4a58-96ec-2e3a7b6913e7"
 
   # SPA routing: 403/404 from S3 → 200 /index.html
   custom_error_response {
