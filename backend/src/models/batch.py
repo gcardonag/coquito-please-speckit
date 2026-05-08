@@ -1,6 +1,7 @@
 """Batch model — represents a single cook production run."""
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Literal
@@ -50,3 +51,20 @@ class Batch:
         check = today or date.today()
         cutoff = date.fromisoformat(self.cutoff_date)
         return check > cutoff
+
+    @classmethod
+    def name_exists(cls, batch_name: str, exclude_batch_id: str | None = None) -> bool:
+        """Return True if a batch with this name (case-insensitive) already exists.
+
+        Pass exclude_batch_id when editing a batch so its own name is not flagged.
+        """
+        from src.services.dynamodb import scan_table, batches_table_name  # noqa: PLC0415
+
+        items = scan_table(batches_table_name())
+        needle = batch_name.strip().lower()
+        for item in items:
+            if item.get("batchId") == exclude_batch_id:
+                continue
+            if item.get("batchName", "").strip().lower() == needle:
+                return True
+        return False
