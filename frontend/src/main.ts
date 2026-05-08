@@ -1,5 +1,5 @@
 import './styles/global.css';
-import { isSessionExpired, logout, redirectToLogin, verifyState } from './services/auth';
+import { getAndClearReturnUrl, getCodeVerifier, isSessionExpired, logout, redirectToLogin, verifyState } from './services/auth';
 
 // ---------------------------------------------------------------------------
 // Hash-based router
@@ -108,21 +108,59 @@ export async function apiFetch(input: RequestInfo, init?: RequestInit): Promise<
 }
 
 // ---------------------------------------------------------------------------
-// Auth: CSRF state verification on callback return
+// Auth: code exchange + CSRF state verification on callback return
 // ---------------------------------------------------------------------------
-function handleAuthCallback(): void {
+async function handleAuthCallback(): Promise<void> {
   const params = new URLSearchParams(window.location.search);
-  const returnedState = params.get('state');
+  const code = params.get('code');
+  const returnedState = params.get('state') ?? '';
 
-  if (returnedState !== null) {
+  if (code) {
+    // Exchange the authorization code for tokens via the backend.
+    // getCodeVerifier() reads and clears the value from sessionStorage.
+    const codeVerifier = getCodeVerifier() ?? '';
+    const apiUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+    const exchangeParams = new URLSearchParams({ code, state: returnedState, code_verifier: codeVerifier });
+
+    try {
+      const resp = await fetch(`${apiUrl}/auth/callback?${exchangeParams.toString()}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!resp.ok) {
+        showBanner('Authentication error: token exchange failed. Please log in again.', 'error');
+        return;
+      }
+    } catch {
+      showBanner('Authentication error: could not reach the auth service. Please try again.', 'error');
+      return;
+    }
+
+    // Restore the pre-login URL (preserving query params like batchId), falling back to root
+    const returnUrl = getAndClearReturnUrl() ?? '/';
+    history.replaceState(null, '', returnUrl);
+    return;
+  }
+
+  // Returning from token exchange redirect: verify CSRF state
+  if (returnedState) {
     const valid = verifyState(returnedState);
     if (!valid) {
       showBanner('Authentication error: state mismatch. Please log in again.', 'error');
     }
-    // Remove ?state= from URL without reload
-    const cleanUrl = window.location.pathname + window.location.hash;
+    // Remove ?code= and ?state= from URL without reload
+    const cleanParams = new URLSearchParams(window.location.search);
+    cleanParams.delete('code');
+    cleanParams.delete('state');
+    const cleanUrl =
+      window.location.pathname +
+      (cleanParams.size ? `?${cleanParams}` : '') +
+      window.location.hash;
     history.replaceState(null, '', cleanUrl);
   }
+
+  redirectToLogin();
 }
 
 // ---------------------------------------------------------------------------
@@ -183,13 +221,14 @@ function renderLogoutButton(): void {
 // ---------------------------------------------------------------------------
 // Startup
 // ---------------------------------------------------------------------------
-handleAuthCallback();
-showHealthStatus();
-renderLogoutButton();
+handleAuthCallback().then(() => {
+  showHealthStatus();
+  renderLogoutButton();
 
-// Initial render + listen for hash changes
-window.addEventListener('hashchange', () => {
+  // Initial render + listen for hash changes
+  window.addEventListener('hashchange', () => {
+    navigate();
+  });
+
   navigate();
 });
-
-navigate();

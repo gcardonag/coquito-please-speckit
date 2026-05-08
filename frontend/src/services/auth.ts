@@ -19,6 +19,7 @@
 
 const AUTH_STATE_KEY = 'auth_state';
 const AUTH_CODE_VERIFIER_KEY = 'auth_code_verifier';
+const AUTH_RETURN_URL_KEY = 'auth_return_url';
 
 // ---------------------------------------------------------------------------
 // Internal PKCE helpers
@@ -62,6 +63,7 @@ export async function redirectToLogin(): Promise<void> {
 
   sessionStorage.setItem(AUTH_STATE_KEY, state);
   sessionStorage.setItem(AUTH_CODE_VERIFIER_KEY, codeVerifier);
+  sessionStorage.setItem(AUTH_RETURN_URL_KEY, window.location.href);
 
   const params = new URLSearchParams({
     response_type: 'code',
@@ -96,8 +98,19 @@ export function verifyState(returnedState: string): boolean {
  */
 export function getCodeVerifier(): string | null {
   const verifier = sessionStorage.getItem(AUTH_CODE_VERIFIER_KEY);
-  sessionStorage.removeItem(AUTH_CODE_VERIFIER_KEY);
+  // sessionStorage.removeItem(AUTH_CODE_VERIFIER_KEY);
   return verifier;
+}
+
+/**
+ * Retrieve and clear the URL saved before the login redirect, so the app
+ * can return the user to their original page (including query params) after
+ * a successful token exchange.
+ */
+export function getAndClearReturnUrl(): string | null {
+  const url = sessionStorage.getItem(AUTH_RETURN_URL_KEY);
+  sessionStorage.removeItem(AUTH_RETURN_URL_KEY);
+  return url;
 }
 
 /**
