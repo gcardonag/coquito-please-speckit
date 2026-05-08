@@ -77,7 +77,6 @@ function renderLoading(): string {
     </div>`;
 }
 
-
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')

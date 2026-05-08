@@ -1,5 +1,12 @@
 import './styles/global.css';
-import { getAndClearReturnUrl, getCodeVerifier, isSessionExpired, logout, redirectToLogin, verifyState } from './services/auth';
+import {
+  getAndClearReturnUrl,
+  getCodeVerifier,
+  isSessionExpired,
+  logout,
+  redirectToLogin,
+  verifyState,
+} from './services/auth';
 
 // ---------------------------------------------------------------------------
 // Hash-based router
@@ -120,7 +127,11 @@ async function handleAuthCallback(): Promise<void> {
     // getCodeVerifier() reads and clears the value from sessionStorage.
     const codeVerifier = getCodeVerifier() ?? '';
     const apiUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
-    const exchangeParams = new URLSearchParams({ code, state: returnedState, code_verifier: codeVerifier });
+    const exchangeParams = new URLSearchParams({
+      code,
+      state: returnedState,
+      code_verifier: codeVerifier,
+    });
 
     try {
       const resp = await fetch(`${apiUrl}/auth/callback?${exchangeParams.toString()}`, {
@@ -133,7 +144,10 @@ async function handleAuthCallback(): Promise<void> {
         return;
       }
     } catch {
-      showBanner('Authentication error: could not reach the auth service. Please try again.', 'error');
+      showBanner(
+        'Authentication error: could not reach the auth service. Please try again.',
+        'error'
+      );
       return;
     }
 
@@ -154,9 +168,7 @@ async function handleAuthCallback(): Promise<void> {
     cleanParams.delete('code');
     cleanParams.delete('state');
     const cleanUrl =
-      window.location.pathname +
-      (cleanParams.size ? `?${cleanParams}` : '') +
-      window.location.hash;
+      window.location.pathname + (cleanParams.size ? `?${cleanParams}` : '') + window.location.hash;
     history.replaceState(null, '', cleanUrl);
   }
 
