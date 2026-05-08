@@ -36,7 +36,7 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     caller_id = authorizer_ctx.get("userId", "")
     endpoint = (event.get("requestContext") or {}).get("http", {}).get("path", "POST /api/v1/requests/{id}/cancel")
 
-    request_id: str = (event.get("pathParameters") or {}).get("requestId", "")
+    request_id: str = (event.get("pathParameters") or {}).get("id", "")
 
     try:
         req_item = get_item(requests_table_name(), {"requestId": request_id})

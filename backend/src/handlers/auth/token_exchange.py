@@ -60,13 +60,9 @@ def handler(event: dict, context: Any) -> dict:  # noqa: ANN401
             "body": json.dumps({"code": "COGNITO_UNAVAILABLE", "message": "Authentication service error"}),
         }
 
-    base_url = "https://" + (event.get("headers") or {}).get("host", "coquito.gcardona.me")
-    location = f"{base_url}/?state={state}" if state else f"{base_url}/"
-
     return {
-        "statusCode": 302,
+        "statusCode": 200,
         "headers": {
-            "location": location,
             "Content-Type": "application/json",
         },
         "cookies": [
@@ -74,5 +70,7 @@ def handler(event: dict, context: Any) -> dict:  # noqa: ANN401
             _set_cookie("access_token", tokens["access_token"], max_age=3600),
             _set_cookie("refresh_token", tokens["refresh_token"], max_age=2592000, path="/auth/refresh"),
         ],
-        "body": "",
+        "body": json.dumps({
+            "state": state
+        }),
     }

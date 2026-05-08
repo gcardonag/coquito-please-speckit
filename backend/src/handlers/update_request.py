@@ -33,7 +33,7 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     if role != "chef":
         return _response(403, {"code": "FORBIDDEN", "message": "Chef access required"})
 
-    request_id: str = (event.get("pathParameters") or {}).get("requestId", "")
+    request_id: str = (event.get("pathParameters") or {}).get("id", "")
 
     try:
         body: dict[str, Any] = json.loads(event.get("body") or "{}")
