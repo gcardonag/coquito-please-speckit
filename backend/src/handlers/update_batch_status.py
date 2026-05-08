@@ -6,14 +6,12 @@ Chef role required.
 from __future__ import annotations
 
 import json
-from collections import defaultdict
 from typing import Any
 
 from aws_lambda_powertools import Logger
 
 from src.handlers._auth import require_chef
 from src.services.dynamodb import (
-    ConflictError,
     ItemNotFoundError,
     batches_table_name,
     get_item,

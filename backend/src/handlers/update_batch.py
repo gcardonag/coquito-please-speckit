@@ -16,7 +16,6 @@ from aws_lambda_powertools import Logger
 from src.handlers._auth import require_chef
 from src.models.batch import Batch
 from src.services.dynamodb import (
-    ConflictError,
     ItemNotFoundError,
     batches_table_name,
     get_item,
