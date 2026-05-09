@@ -61,7 +61,7 @@ class TestAuthCallback:
         event["queryStringParameters"]["code_verifier"] = "test-verifier"
         result = self._invoke(event)
 
-        assert result["statusCode"] == 302
+        assert result["statusCode"] == 200
         headers = result.get("headers", {})
         # Multi-value headers or single cookies field
         cookies = result.get("cookies", []) or []

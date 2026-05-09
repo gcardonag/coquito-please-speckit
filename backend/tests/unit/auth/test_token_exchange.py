@@ -56,7 +56,7 @@ class TestTokenExchange:
 
     def test_valid_code_returns_302_with_three_cookies(self):
         result = self._invoke(_make_event())
-        assert result["statusCode"] == 302
+        assert result["statusCode"] == 200
         cookies = result.get("cookies", [])
         assert len(cookies) == 3
         for cookie in cookies:

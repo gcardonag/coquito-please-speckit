@@ -1,9 +1,9 @@
 import './batch-management.css';
 import {
   ApiRequestError,
-  BatchSummary,
-  CreateBatchPayload,
-  UpdateBatchPayload,
+  type BatchSummary,
+  type CreateBatchPayload,
+  type UpdateBatchPayload,
   createBatch,
   listBatches,
   listVarieties,
