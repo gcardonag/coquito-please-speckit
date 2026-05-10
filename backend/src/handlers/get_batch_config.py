@@ -24,6 +24,9 @@ def _response(status_code: int, body: Any) -> dict[str, Any]:
 
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     """Lambda handler for GET /api/v1/batches/{id}."""
+    role = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {}).get("role", "")
+    if role != "chef":
+        return _response(403, {"code": "FORBIDDEN", "message": "Chef access required"})
 
     batch_id: str = (event.get("pathParameters") or {}).get("id", "")
     cloudfront_base = os.environ.get("CLOUDFRONT_ASSETS_BASE_URL", "")

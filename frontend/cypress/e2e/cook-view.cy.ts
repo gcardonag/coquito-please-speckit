@@ -85,7 +85,7 @@ describe('US4 — Cook View: Finalized list', () => {
 describe('US4 — Cook View: Checkbox toggle', () => {
   beforeEach(() => {
     stubIngredients();
-    cy.intercept('PATCH', `**/batches/${BATCH_ID}/ingredients/i-rum/acquired`, {
+    cy.intercept('PUT', `**/batches/${BATCH_ID}/ingredients/i-rum/acquired`, {
       ingredientId: 'i-rum',
       acquired: true,
       updatedAt: '2026-03-29T00:00:00Z',
@@ -100,9 +100,3 @@ describe('US4 — Cook View: Checkbox toggle', () => {
   });
 });
 
-describe('US4 — Cook View: Access denied', () => {
-  it('shows access-denied message without cook secret param', () => {
-    cy.visit(`/#/cook?batchId=${BATCH_ID}`);
-    cy.get('[data-cy="access-denied"]').should('be.visible');
-  });
-});

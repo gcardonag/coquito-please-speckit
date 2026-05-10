@@ -56,7 +56,7 @@ class TestTokenExchange:
 
     def test_valid_code_returns_302_with_three_cookies(self):
         result = self._invoke(_make_event())
-        assert result["statusCode"] == 302
+        assert result["statusCode"] == 200
         cookies = result.get("cookies", [])
         assert len(cookies) == 3
         for cookie in cookies:
@@ -72,6 +72,6 @@ class TestTokenExchange:
 
     def test_state_echoed_in_redirect_location(self):
         result = self._invoke(_make_event(state="my-state"))
-        assert result["statusCode"] == 302
-        location = result.get("headers", {}).get("location", "")
-        assert "state=my-state" in location
+        assert result["statusCode"] == 200
+        body = json.loads(result["body"])
+        assert body["state"] == "my-state"

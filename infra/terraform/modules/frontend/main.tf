@@ -74,8 +74,8 @@ resource "aws_cloudfront_response_headers_policy" "main" {
 
     access_control_allow_origins {
       items = [
-        "api.${var.domain}",
-        "auth.${var.domain}"
+        "https://api.${var.domain}",
+        "https://auth.${var.domain}"
       ]
     }
   }

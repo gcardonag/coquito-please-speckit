@@ -1,4 +1,5 @@
 """T034: Unit tests for get_request Lambda handler."""
+import json
 import boto3
 import pytest
 from moto import mock_aws
@@ -81,9 +82,9 @@ def ddb_tables():
 class TestGetRequest:
     def test_returns_full_request_with_editable_true_before_cutoff(self, ddb_tables):
         with patch("src.handlers.get_request._today", return_value=date(2026, 11, 1)):
-            result = handler({"pathParameters": {"requestId": "req-001"}}, {})
+            result = handler({"pathParameters": {"id": "req-001"}}, {})
         assert result["statusCode"] == 200
-        body = result["body"]
+        body = json.loads(result["body"])
         assert body["requestId"] == "req-001"
         assert body["editable"] is True
         assert body["batch"]["batchId"] == "b-001"
@@ -91,11 +92,11 @@ class TestGetRequest:
 
     def test_returns_editable_false_after_cutoff(self, ddb_tables):
         with patch("src.handlers.get_request._today", return_value=date(2026, 12, 15)):
-            result = handler({"pathParameters": {"requestId": "req-001"}}, {})
+            result = handler({"pathParameters": {"id": "req-001"}}, {})
         assert result["statusCode"] == 200
-        assert result["body"]["editable"] is False
+        assert json.loads(result["body"])["editable"] is False
 
     def test_returns_404_for_unknown_request(self, ddb_tables):
-        result = handler({"pathParameters": {"requestId": "nonexistent"}}, {})
+        result = handler({"pathParameters": {"id": "nonexistent"}}, {})
         assert result["statusCode"] == 404
-        assert result["body"]["code"] == "REQUEST_NOT_FOUND"
+        assert json.loads(result["body"])["code"] == "REQUEST_NOT_FOUND"

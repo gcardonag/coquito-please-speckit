@@ -189,6 +189,77 @@ export function cancelRequest(
   });
 }
 
+// ---- Chef batch management types ----
+
+export interface CurrentUser {
+  userId: string;
+  role: string;
+  email: string;
+}
+
+export interface BatchSummary {
+  batchId: string;
+  batchName: string;
+  cutoffDate: string;
+  maxBottleVolumeMl: number;
+  status: 'OPEN' | 'CLOSED' | 'COMPLETED';
+  availableVarietyIds: string[];
+  activeRequestCount: number;
+  createdAt: string;
+}
+
+export interface CreateBatchPayload {
+  batchName: string;
+  cutoffDate: string;
+  maxBottleVolumeMl: number;
+  availableVarietyIds: string[];
+}
+
+export interface UpdateBatchPayload {
+  batchName?: string;
+  cutoffDate?: string;
+  maxBottleVolumeMl?: number;
+  availableVarietyIds?: string[];
+}
+
+export interface UpdateBatchStatusPayload {
+  status: 'CLOSED' | 'COMPLETED';
+}
+
+// ---- Chef batch management endpoints ----
+
+export function getMe(): Promise<CurrentUser> {
+  return request('/me');
+}
+
+export function listBatches(): Promise<{ batches: BatchSummary[] }> {
+  return request('/batches');
+}
+
+export function createBatch(payload: CreateBatchPayload): Promise<BatchSummary> {
+  return request('/batches', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateBatch(id: string, payload: UpdateBatchPayload): Promise<BatchSummary> {
+  return request(`/batches/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateBatchStatus(
+  id: string,
+  status: 'CLOSED' | 'COMPLETED'
+): Promise<BatchSummary> {
+  return request(`/batches/${encodeURIComponent(id)}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
+}
+
 export function getIngredientList(batchId: string): Promise<IngredientListResponse> {
   return request(`/batches/${encodeURIComponent(batchId)}/ingredients`);
 }

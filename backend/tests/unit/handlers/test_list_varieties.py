@@ -1,4 +1,5 @@
 """T021: Unit tests for list_varieties Lambda handler."""
+import json
 import os
 
 import boto3
@@ -81,7 +82,7 @@ class TestListVarieties:
         event = {"queryStringParameters": None}
         result = handler(event, {})
         assert result["statusCode"] == 200
-        body = result["body"]
+        body = json.loads(result["body"])
         names = [v["name"] for v in body["varieties"]]
         assert "Classic" in names
         assert "Chocolate" in names
@@ -91,7 +92,7 @@ class TestListVarieties:
         event = {"queryStringParameters": {"batchId": "b-001"}}
         result = handler(event, {})
         assert result["statusCode"] == 200
-        body = result["body"]
+        body = json.loads(result["body"])
         assert len(body["varieties"]) == 1
         assert body["varieties"][0]["name"] == "Classic"
 
@@ -99,10 +100,10 @@ class TestListVarieties:
         event = {"queryStringParameters": {"batchId": "nonexistent"}}
         result = handler(event, {})
         assert result["statusCode"] == 404
-        assert result["body"]["code"] == "BATCH_NOT_FOUND"
+        assert json.loads(result["body"])["code"] == "BATCH_NOT_FOUND"
 
     def test_image_urls_use_cloudfront_base(self, ddb_tables):
         event = {"queryStringParameters": None}
         result = handler(event, {})
-        for variety in result["body"]["varieties"]:
+        for variety in json.loads(result["body"])["varieties"]:
             assert variety["imageUrl"].startswith("https://assets.example.com")

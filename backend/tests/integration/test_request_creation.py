@@ -92,7 +92,7 @@ class TestRequestCreationIntegration:
             result = handler({"body": json.dumps(payload)}, {})
 
         assert result["statusCode"] == 201
-        request_id = result["body"]["requestId"]
+        request_id = json.loads(result["body"])["requestId"]
 
         # Verify DynamoDB item was written
         item = seeded_tables["requests"].get_item(Key={"requestId": request_id})["Item"]
@@ -127,7 +127,7 @@ class TestRequestCreationIntegration:
         assert len(schedule_calls) == 2
 
         # Verify reminders stored in DynamoDB
-        request_id = result["body"]["requestId"]
+        request_id = json.loads(result["body"])["requestId"]
         item = seeded_tables["requests"].get_item(Key={"requestId": request_id})["Item"]
         assert len(item["reminders"]) == 2
         statuses = [r["status"] for r in item["reminders"]]

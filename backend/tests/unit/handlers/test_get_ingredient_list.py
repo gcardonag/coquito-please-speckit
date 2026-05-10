@@ -1,4 +1,5 @@
 """T053: Unit tests for get_ingredient_list handler."""
+import json
 from decimal import Decimal
 import boto3
 import pytest
@@ -112,7 +113,7 @@ def ddb_tables():
 
 def _event(batch_id="b-cook-001", cook_secret="secret-sauce"):
     return {
-        "pathParameters": {"batchId": batch_id},
+        "pathParameters": {"id": batch_id},
         "headers": {"X-Cook-Secret": cook_secret},
         "requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}},
     }
@@ -124,7 +125,7 @@ class TestGetIngredientList:
             result = handler(_event(), {})
 
         assert result["statusCode"] == 200
-        body = result["body"]
+        body = json.loads(result["body"])
         assert body["totalConfirmedRequests"] == 3  # 2 classic + 1 choco
 
         variety_ids = {v["varietyId"] for v in body["byVariety"]}
@@ -139,29 +140,29 @@ class TestGetIngredientList:
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
             result = handler(_event(), {})
 
-        body = result["body"]
+        body = json.loads(result["body"])
         assert body["totalConfirmedRequests"] == 3  # CANCELLED not counted
 
     def test_is_finalized_false_before_cutoff(self, ddb_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
             result = handler(_event(), {})
-        assert result["body"]["isFinalized"] is False
+        assert json.loads(result["body"])["isFinalized"] is False
 
     def test_is_finalized_true_after_cutoff(self, ddb_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 12, 15)):
             result = handler(_event(), {})
-        assert result["body"]["isFinalized"] is True
+        assert json.loads(result["body"])["isFinalized"] is True
 
     def test_returns_403_for_non_chef_role(self, ddb_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
             event = {
-                "pathParameters": {"batchId": "b-cook-001"},
+                "pathParameters": {"id": "b-cook-001"},
                 "headers": {},
                 "requestContext": {"authorizer": {"lambda": {"role": "authorized-user", "userId": "u-001", "email": "u@example.com"}}},
             }
             result = handler(event, {})
         assert result["statusCode"] == 403
-        assert result["body"]["code"] == "FORBIDDEN"
+        assert json.loads(result["body"])["code"] == "FORBIDDEN"
 
     def test_returns_403_for_missing_auth_context(self, ddb_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
@@ -173,4 +174,4 @@ class TestGetIngredientList:
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
             result = handler(_event(batch_id="b-unknown"), {})
         assert result["statusCode"] == 404
-        assert result["body"]["code"] == "BATCH_NOT_FOUND"
+        assert json.loads(result["body"])["code"] == "BATCH_NOT_FOUND"

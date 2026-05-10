@@ -90,7 +90,7 @@ class TestCreateRequest:
         with patch("src.services.scheduler.create_one_time_schedule", return_value="arn:schedule:1"):
             result = handler(make_event(), {})
         assert result["statusCode"] == 201
-        body = result["body"]
+        body = json.loads(result["body"])
         assert "requestId" in body
         assert body["status"] == "CONFIRMED"
         assert body["variety"]["name"] == "Classic"
@@ -99,34 +99,34 @@ class TestCreateRequest:
         with patch("src.services.scheduler.create_one_time_schedule", return_value="arn:schedule:1"):
             result1 = handler(make_event(), {})
             result2 = handler(make_event(), {})
-        assert result1["body"]["requestId"] == result2["body"]["requestId"]
+        assert json.loads(result1["body"])["requestId"] == json.loads(result2["body"])["requestId"]
 
     def test_bottle_volume_exceeded_returns_400(self, ddb_tables):
         payload = {**VALID_PAYLOAD, "bottleProvided": True, "bottleVolumeMl": 9999}
         result = handler(make_event(payload), {})
         assert result["statusCode"] == 400
-        assert result["body"]["code"] == "BOTTLE_VOLUME_EXCEEDED"
+        assert json.loads(result["body"])["code"] == "BOTTLE_VOLUME_EXCEEDED"
 
     def test_batch_closed_for_past_cutoff_date(self, ddb_tables):
         payload = {**VALID_PAYLOAD, "pickupDate": "2025-01-01"}
         result = handler(make_event(payload), {})
         assert result["statusCode"] == 400
-        assert result["body"]["code"] == "BATCH_CLOSED"
+        assert json.loads(result["body"])["code"] == "BATCH_CLOSED"
 
     def test_validation_error_for_missing_field(self, ddb_tables):
         payload = {**VALID_PAYLOAD, "requesterName": ""}
         result = handler(make_event(payload), {})
         assert result["statusCode"] == 400
-        assert result["body"]["code"] == "VALIDATION_ERROR"
+        assert json.loads(result["body"])["code"] == "VALIDATION_ERROR"
 
     def test_variety_not_found_for_inactive_variety(self, ddb_tables):
         payload = {**VALID_PAYLOAD, "varietyId": "v-inactive"}
         result = handler(make_event(payload), {})
         assert result["statusCode"] in (404, 400)
-        assert result["body"]["code"] in ("VARIETY_NOT_FOUND", "VALIDATION_ERROR")
+        assert json.loads(result["body"])["code"] in ("VARIETY_NOT_FOUND", "VALIDATION_ERROR")
 
     def test_batch_not_found_returns_404(self, ddb_tables):
         payload = {**VALID_PAYLOAD, "batchId": "nonexistent"}
         result = handler(make_event(payload), {})
         assert result["statusCode"] == 404
-        assert result["body"]["code"] == "BATCH_NOT_FOUND"
+        assert json.loads(result["body"])["code"] == "BATCH_NOT_FOUND"

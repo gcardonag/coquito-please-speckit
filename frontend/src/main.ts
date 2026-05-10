@@ -7,6 +7,12 @@ import {
   redirectToLogin,
   verifyState,
 } from './services/auth';
+import { getMe, type CurrentUser } from './services/api';
+
+// ---------------------------------------------------------------------------
+// Authenticated user — cached from GET /api/v1/me at startup
+// ---------------------------------------------------------------------------
+let currentUser: CurrentUser | null = null;
 
 // ---------------------------------------------------------------------------
 // Hash-based router
@@ -14,6 +20,7 @@ import {
 //   #/             → request-form page
 //   #/manage/:id   → manage-request page
 //   #/cook         → cook-view page
+//   #/batches      → batch-management page (chef only)
 //   (anything else) → 404
 // ---------------------------------------------------------------------------
 
@@ -42,6 +49,12 @@ async function renderCookView(_params: Record<string, string>): Promise<void> {
   mountCookView(appEl);
 }
 
+async function renderBatchManagement(_params: Record<string, string>): Promise<void> {
+  const { mountBatchManagement } = await import('./pages/batch-management/index');
+  appEl.innerHTML = '';
+  await mountBatchManagement(appEl);
+}
+
 function renderNotFound(): void {
   appEl.innerHTML = `
     <div class="page-wrapper">
@@ -65,6 +78,10 @@ const routes: Route[] = [
   {
     pattern: /^#\/cook$/,
     render: renderCookView,
+  },
+  {
+    pattern: /^#\/batches$/,
+    render: renderBatchManagement,
   },
 ];
 
@@ -233,9 +250,33 @@ function renderLogoutButton(): void {
 // ---------------------------------------------------------------------------
 // Startup
 // ---------------------------------------------------------------------------
-handleAuthCallback().then(() => {
+// ---------------------------------------------------------------------------
+// Inject "Manage Batches" nav link for chef accounts
+// ---------------------------------------------------------------------------
+function renderChefNav(): void {
+  if (document.getElementById('chef-nav')) return;
+  const link = document.createElement('a');
+  link.id = 'chef-nav';
+  link.href = '#/batches';
+  link.textContent = 'Manage Batches';
+  link.style.cssText =
+    'position:fixed;bottom:1rem;left:1rem;padding:0.5rem 1rem;cursor:pointer;z-index:9998;text-decoration:none;background:var(--color-coconut,#5c3d1e);color:#fff;border-radius:4px';
+  document.body.appendChild(link);
+}
+
+handleAuthCallback().then(async () => {
   showHealthStatus();
   renderLogoutButton();
+
+  // Resolve current user for role-conditional UI; silently skip on error
+  try {
+    currentUser = await getMe();
+    if (currentUser?.role === 'chef') {
+      renderChefNav();
+    }
+  } catch {
+    // not authenticated yet or /me unavailable — continue without chef nav
+  }
 
   // Initial render + listen for hash changes
   window.addEventListener('hashchange', () => {

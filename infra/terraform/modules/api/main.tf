@@ -465,6 +465,11 @@ locals {
     mark_ingredient_acquired = aws_lambda_function.mark_ingredient_acquired
     send_reminder            = aws_lambda_function.send_reminder
     create_user              = aws_lambda_function.create_user
+    get_me                   = aws_lambda_function.get_me
+    list_batches             = aws_lambda_function.list_batches
+    create_batch             = aws_lambda_function.create_batch
+    update_batch             = aws_lambda_function.update_batch
+    update_batch_status      = aws_lambda_function.update_batch_status
   }
   public_functions = {
     auth_token_exchange = aws_lambda_function.auth_token_exchange
@@ -796,5 +801,288 @@ resource "aws_cloudwatch_log_group" "send_reminder" {
 
 resource "aws_cloudwatch_log_group" "create_user" {
   name              = "/aws/lambda/coquito-create-user"
+  retention_in_days = 30
+}
+
+# ---------------------------------------------------------------------------
+# Lambda functions — chef batch management (protected, chef-role required)
+# ---------------------------------------------------------------------------
+resource "aws_lambda_function" "get_me" {
+  function_name    = "coquito-get-me"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.get_me.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "list_batches" {
+  function_name    = "coquito-list-batches"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.list_batches.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "create_batch" {
+  function_name    = "coquito-create-batch"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.create_batch.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "update_batch" {
+  function_name    = "coquito-update-batch"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.update_batch.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "update_batch_status" {
+  function_name    = "coquito-update-batch-status"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.update_batch_status.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "close_expired_batches" {
+  function_name    = "coquito-close-expired-batches"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.close_expired_batches.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 60
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Integrations — chef batch management
+# ---------------------------------------------------------------------------
+resource "aws_apigatewayv2_integration" "get_me" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.get_me.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "list_batches" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.list_batches.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "create_batch" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.create_batch.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "update_batch" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.update_batch.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "update_batch_status" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.update_batch_status.invoke_arn
+  payload_format_version = "2.0"
+}
+
+# ---------------------------------------------------------------------------
+# Routes — chef batch management (protected, Lambda authorizer)
+# ---------------------------------------------------------------------------
+resource "aws_apigatewayv2_route" "get_me" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /api/v1/me"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.get_me.id}"
+}
+
+resource "aws_apigatewayv2_route" "list_batches" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /api/v1/batches"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.list_batches.id}"
+}
+
+resource "aws_apigatewayv2_route" "create_batch" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "POST /api/v1/batches"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.create_batch.id}"
+}
+
+resource "aws_apigatewayv2_route" "update_batch" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "PUT /api/v1/batches/{id}"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.update_batch.id}"
+}
+
+resource "aws_apigatewayv2_route" "update_batch_status" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "PUT /api/v1/batches/{id}/status"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.update_batch_status.id}"
+}
+
+# ---------------------------------------------------------------------------
+# EventBridge Scheduler — nightly auto-close expired batches
+# ---------------------------------------------------------------------------
+resource "aws_iam_role" "scheduler_exec" {
+  name = "coquito-scheduler-exec-${var.environment}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "scheduler.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "scheduler_invoke" {
+  name = "coquito-scheduler-invoke-${var.environment}"
+  role = aws_iam_role.scheduler_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = "lambda:InvokeFunction"
+      Resource = aws_lambda_function.close_expired_batches.arn
+    }]
+  })
+}
+
+resource "aws_scheduler_schedule" "close_expired_batches" {
+  name       = "coquito-close-expired-batches-${var.environment}"
+  group_name = "default"
+
+  flexible_time_window {
+    mode = "OFF"
+  }
+
+  schedule_expression = "cron(5 0 * * ? *)"
+
+  target {
+    arn      = aws_lambda_function.close_expired_batches.arn
+    role_arn = aws_iam_role.scheduler_exec.arn
+  }
+}
+
+# ---------------------------------------------------------------------------
+# CloudWatch log groups — chef batch management
+# ---------------------------------------------------------------------------
+resource "aws_cloudwatch_log_group" "get_me" {
+  name              = "/aws/lambda/coquito-get-me"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "list_batches" {
+  name              = "/aws/lambda/coquito-list-batches"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "create_batch" {
+  name              = "/aws/lambda/coquito-create-batch"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "update_batch" {
+  name              = "/aws/lambda/coquito-update-batch"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "update_batch_status" {
+  name              = "/aws/lambda/coquito-update-batch-status"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "close_expired_batches" {
+  name              = "/aws/lambda/coquito-close-expired-batches"
   retention_in_days = 30
 }

@@ -61,7 +61,7 @@ class TestAuthCallback:
         event["queryStringParameters"]["code_verifier"] = "test-verifier"
         result = self._invoke(event)
 
-        assert result["statusCode"] == 302
+        assert result["statusCode"] == 200
         headers = result.get("headers", {})
         # Multi-value headers or single cookies field
         cookies = result.get("cookies", []) or []
@@ -84,11 +84,11 @@ class TestAuthCallback:
         assert body["code"] == "INVALID_CODE"
 
     def test_state_present_in_redirect(self):
-        """state param is echoed back in the redirect Location header."""
+        """state param is echoed back in the response body."""
         event = _make_event(state="my-csrf-state")
         event["queryStringParameters"]["code_verifier"] = "test-verifier"
         result = self._invoke(event)
 
-        assert result["statusCode"] == 302
-        location = result.get("headers", {}).get("location", "")
-        assert "state=my-csrf-state" in location
+        assert result["statusCode"] == 200
+        body = json.loads(result["body"])
+        assert body["state"] == "my-csrf-state"
