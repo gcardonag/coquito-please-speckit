@@ -54,6 +54,7 @@ async function _sha256Base64Url(plain: string): Promise<string> {
  */
 export async function redirectToLogin(): Promise<void> {
   const authUrl = import.meta.env.VITE_AUTH_URL as string;
+  if (!authUrl) return;
   const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID as string;
   const redirectUri = `${window.location.origin}/auth/callback`;
 

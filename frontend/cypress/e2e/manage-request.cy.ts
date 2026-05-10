@@ -103,7 +103,7 @@ describe('US2 — Manage Request: Cancel', () => {
   });
 
   it('confirming cancel calls DELETE and shows cancellation message', () => {
-    cy.intercept('DELETE', `**/requests/${REQUEST_ID}`, MOCK_CANCELLED).as('cancelRequest');
+    cy.intercept('POST', `**/requests/${REQUEST_ID}/cancel`, MOCK_CANCELLED).as('cancelRequest');
 
     cy.get('[data-cy="cancel-button"]').click();
     cy.get('[data-cy="cancel-confirm"]').click();
