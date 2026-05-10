@@ -268,8 +268,7 @@ function renderChefNav(): void {
 
   const nav = document.createElement('nav');
   nav.id = 'chef-nav';
-  nav.style.cssText =
-    'position:fixed;bottom:1rem;left:1rem;display:flex;gap:0.5rem;z-index:9998';
+  nav.style.cssText = 'position:fixed;bottom:1rem;left:1rem;display:flex;gap:0.5rem;z-index:9998';
 
   const linkStyle =
     'padding:0.5rem 1rem;cursor:pointer;text-decoration:none;background:var(--color-coconut,#5c3d1e);color:#fff;border-radius:4px;font-size:0.875rem';

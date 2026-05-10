@@ -182,7 +182,7 @@
   border-color: var(--color-border-focus);
 }
 
-.variety-form__input[aria-invalid="true"] {
+.variety-form__input[aria-invalid='true'] {
   border-color: var(--color-error);
 }
 
