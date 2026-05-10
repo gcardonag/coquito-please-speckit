@@ -72,6 +72,6 @@ class TestTokenExchange:
 
     def test_state_echoed_in_redirect_location(self):
         result = self._invoke(_make_event(state="my-state"))
-        assert result["statusCode"] == 302
-        location = result.get("headers", {}).get("location", "")
-        assert "state=my-state" in location
+        assert result["statusCode"] == 200
+        body = json.loads(result["body"])
+        assert body["state"] == "my-state"

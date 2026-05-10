@@ -1,4 +1,5 @@
 """T055: Integration tests for ingredient list aggregation and acquired flow."""
+import json
 from decimal import Decimal
 import boto3
 import pytest
@@ -105,12 +106,12 @@ class TestIngredientListIntegration:
     def test_quantities_multiplied_per_variety(self, seeded_tables):
         with patch("src.handlers.get_ingredient_list._today", return_value=date(2026, 11, 1)):
             result = get_ingredients(self._chef_event({
-                "pathParameters": {"batchId": "b-int-cook"},
+                "pathParameters": {"id": "b-int-cook"},
                 "headers": {"X-Cook-Secret": "int-secret"},
             }), {})
 
         assert result["statusCode"] == 200
-        body = result["body"]
+        body = json.loads(result["body"])
         assert body["totalConfirmedRequests"] == 3
 
         classic = next(v for v in body["byVariety"] if v["varietyId"] == "v-classic")
@@ -127,7 +128,7 @@ class TestIngredientListIntegration:
     def test_mark_acquired_persists_to_dynamodb(self, seeded_tables):
         import json
         result = mark_acquired(self._chef_event({
-            "pathParameters": {"batchId": "b-int-cook", "ingredientId": "i-rum"},
+            "pathParameters": {"id": "b-int-cook", "ingredId": "i-rum"},
             "headers": {"X-Cook-Secret": "int-secret"},
             "body": json.dumps({"acquired": True}),
         }), {})

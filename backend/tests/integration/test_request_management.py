@@ -89,7 +89,7 @@ class TestRequestManagementIntegration:
         created = []
 
         chef_event = {
-            "pathParameters": {"requestId": "req-int-mgmt-001"},
+            "pathParameters": {"id": "req-int-mgmt-001"},
             "body": json.dumps({"pickupDate": "2026-12-22"}),
             "requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}},
         }
@@ -101,7 +101,7 @@ class TestRequestManagementIntegration:
                     result = update_handler(chef_event, {})
 
         assert result["statusCode"] == 200
-        assert result["body"]["pickupDate"] == "2026-12-22"
+        assert json.loads(result["body"])["pickupDate"] == "2026-12-22"
 
         # Old reminders deleted, new ones created
         assert len(deleted) == 2
@@ -117,11 +117,11 @@ class TestRequestManagementIntegration:
         with patch("src.handlers.cancel_request._today", return_value=date(2026, 11, 1)):
             with patch("src.services.scheduler.delete_schedule"):
                 result = cancel_handler({
-                    "pathParameters": {"requestId": "req-int-mgmt-001"},
+                    "pathParameters": {"id": "req-int-mgmt-001"},
                 }, {})
 
         assert result["statusCode"] == 200
-        assert result["body"]["status"] == "CANCELLED"
+        assert json.loads(result["body"])["status"] == "CANCELLED"
 
         # Verify status in DynamoDB
         item = seeded_tables["requests"].get_item(Key={"requestId": "req-int-mgmt-001"})["Item"]

@@ -1,4 +1,5 @@
 """T036: Unit tests for cancel_request Lambda handler."""
+import json
 import boto3
 import pytest
 from moto import mock_aws
@@ -76,28 +77,29 @@ class TestCancelRequest:
     def test_cancels_request_and_returns_200(self, ddb_tables):
         with patch("src.handlers.cancel_request._today", return_value=date(2026, 11, 1)):
             with patch("src.services.scheduler.delete_schedule"):
-                result = handler({"pathParameters": {"requestId": "req-cancel-001"}}, {})
+                result = handler({"pathParameters": {"id": "req-cancel-001"}}, {})
         assert result["statusCode"] == 200
-        assert result["body"]["status"] == "CANCELLED"
-        assert "cancelledAt" in result["body"]
+        body = json.loads(result["body"])
+        assert body["status"] == "CANCELLED"
+        assert "cancelledAt" in body
 
     def test_idempotent_already_cancelled_returns_200(self, ddb_tables):
         with patch("src.handlers.cancel_request._today", return_value=date(2026, 11, 1)):
             with patch("src.services.scheduler.delete_schedule"):
-                handler({"pathParameters": {"requestId": "req-cancel-001"}}, {})
-                result = handler({"pathParameters": {"requestId": "req-cancel-001"}}, {})
+                handler({"pathParameters": {"id": "req-cancel-001"}}, {})
+                result = handler({"pathParameters": {"id": "req-cancel-001"}}, {})
         assert result["statusCode"] == 200
 
     def test_returns_403_after_cutoff(self, ddb_tables):
         with patch("src.handlers.cancel_request._today", return_value=date(2026, 12, 15)):
-            result = handler({"pathParameters": {"requestId": "req-cancel-001"}}, {})
+            result = handler({"pathParameters": {"id": "req-cancel-001"}}, {})
         assert result["statusCode"] == 403
-        assert result["body"]["code"] == "CUTOFF_PASSED"
+        assert json.loads(result["body"])["code"] == "CUTOFF_PASSED"
 
     def test_cancels_all_scheduled_reminders_in_eventbridge(self, ddb_tables):
         deleted = []
         with patch("src.handlers.cancel_request._today", return_value=date(2026, 11, 1)):
             with patch("src.services.scheduler.delete_schedule", side_effect=lambda name: deleted.append(name)):
-                handler({"pathParameters": {"requestId": "req-cancel-001"}}, {})
+                handler({"pathParameters": {"id": "req-cancel-001"}}, {})
         # One SCHEDULED reminder → two schedule names deleted (7d and 1d)
         assert len(deleted) == 2

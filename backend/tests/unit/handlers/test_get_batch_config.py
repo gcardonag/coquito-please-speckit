@@ -1,4 +1,5 @@
 """T022: Unit tests for get_batch_config Lambda handler."""
+import json
 import boto3
 import pytest
 from moto import mock_aws
@@ -58,10 +59,10 @@ _CHEF_CTX = {"requestContext": {"authorizer": {"lambda": {"role": "chef", "userI
 
 class TestGetBatchConfig:
     def test_returns_batch_with_resolved_varieties(self, ddb_tables):
-        event = {"pathParameters": {"batchId": "b-001"}, **_CHEF_CTX}
+        event = {"pathParameters": {"id": "b-001"}, **_CHEF_CTX}
         result = handler(event, {})
         assert result["statusCode"] == 200
-        body = result["body"]
+        body = json.loads(result["body"])
         assert body["batchId"] == "b-001"
         assert body["batchName"] == "Christmas 2026"
         assert body["maxBottleVolumeMl"] == 750
@@ -69,13 +70,13 @@ class TestGetBatchConfig:
         assert body["availableVarieties"][0]["name"] == "Classic"
 
     def test_variety_image_url_is_resolved(self, ddb_tables):
-        event = {"pathParameters": {"batchId": "b-001"}, **_CHEF_CTX}
+        event = {"pathParameters": {"id": "b-001"}, **_CHEF_CTX}
         result = handler(event, {})
-        variety = result["body"]["availableVarieties"][0]
+        variety = json.loads(result["body"])["availableVarieties"][0]
         assert variety["imageUrl"].startswith("https://assets.example.com")
 
     def test_returns_404_for_unknown_batch(self, ddb_tables):
-        event = {"pathParameters": {"batchId": "nonexistent"}, **_CHEF_CTX}
+        event = {"pathParameters": {"id": "nonexistent"}, **_CHEF_CTX}
         result = handler(event, {})
         assert result["statusCode"] == 404
-        assert result["body"]["code"] == "BATCH_NOT_FOUND"
+        assert json.loads(result["body"])["code"] == "BATCH_NOT_FOUND"
