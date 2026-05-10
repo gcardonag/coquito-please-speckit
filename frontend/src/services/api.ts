@@ -277,3 +277,74 @@ export function markIngredientAcquired(
     }
   );
 }
+
+// ---- Chef variety management types ----
+
+export interface ChefIngredientDetail {
+  ingredientId: string;
+  name: string;
+  quantityPerBottle: number;
+  unit: string;
+  category: string;
+}
+
+export interface ChefVarietyDetail {
+  varietyId: string;
+  name: string;
+  description: string;
+  imageKey: string;
+  bottleYieldMl: number;
+  active: boolean;
+  ingredients: ChefIngredientDetail[];
+}
+
+export interface IngredientPayload {
+  ingredientId?: string;
+  name: string;
+  quantityPerBottle: number;
+  unit: string;
+  category: string;
+}
+
+export interface CreateVarietyPayload {
+  name: string;
+  description?: string;
+  imageKey?: string;
+  bottleYieldMl: number;
+  active?: boolean;
+  ingredients?: IngredientPayload[];
+}
+
+export interface UpdateVarietyPayload {
+  name?: string;
+  description?: string;
+  imageKey?: string;
+  bottleYieldMl?: number;
+  active?: boolean;
+  ingredients?: IngredientPayload[];
+}
+
+// ---- Chef variety management endpoints ----
+
+export function chefListVarieties(): Promise<{ varieties: ChefVarietyDetail[] }> {
+  return request('/chef/varieties');
+}
+
+export function chefCreateVariety(
+  payload: CreateVarietyPayload
+): Promise<{ variety: ChefVarietyDetail }> {
+  return request('/chef/varieties', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function chefUpdateVariety(
+  id: string,
+  payload: UpdateVarietyPayload
+): Promise<{ variety: ChefVarietyDetail }> {
+  return request(`/chef/varieties/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}

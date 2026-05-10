@@ -470,6 +470,9 @@ locals {
     create_batch             = aws_lambda_function.create_batch
     update_batch             = aws_lambda_function.update_batch
     update_batch_status      = aws_lambda_function.update_batch_status
+    chef_list_varieties      = aws_lambda_function.chef_list_varieties
+    chef_create_variety      = aws_lambda_function.chef_create_variety
+    chef_update_variety      = aws_lambda_function.chef_update_variety
   }
   public_functions = {
     auth_token_exchange = aws_lambda_function.auth_token_exchange
@@ -1084,5 +1087,137 @@ resource "aws_cloudwatch_log_group" "update_batch_status" {
 
 resource "aws_cloudwatch_log_group" "close_expired_batches" {
   name              = "/aws/lambda/coquito-close-expired-batches"
+  retention_in_days = 30
+}
+
+# ---------------------------------------------------------------------------
+# Lambda functions — chef variety management (protected, chef-role required)
+# ---------------------------------------------------------------------------
+resource "aws_lambda_function" "chef_list_varieties" {
+  function_name    = "coquito-chef-list-varieties"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.chef_list_varieties.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "chef_create_variety" {
+  function_name    = "coquito-chef-create-variety"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.chef_create_variety.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "chef_update_variety" {
+  function_name    = "coquito-chef-update-variety"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.chef_update_variety.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT              = var.environment
+      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Integrations — chef variety management
+# ---------------------------------------------------------------------------
+resource "aws_apigatewayv2_integration" "chef_list_varieties" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.chef_list_varieties.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "chef_create_variety" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.chef_create_variety.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "chef_update_variety" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.chef_update_variety.invoke_arn
+  payload_format_version = "2.0"
+}
+
+# ---------------------------------------------------------------------------
+# Routes — chef variety management (protected, Lambda authorizer)
+# ---------------------------------------------------------------------------
+resource "aws_apigatewayv2_route" "chef_list_varieties" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /api/v1/chef/varieties"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.chef_list_varieties.id}"
+}
+
+resource "aws_apigatewayv2_route" "chef_create_variety" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "POST /api/v1/chef/varieties"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.chef_create_variety.id}"
+}
+
+resource "aws_apigatewayv2_route" "chef_update_variety" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "PUT /api/v1/chef/varieties/{id}"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.chef_update_variety.id}"
+}
+
+# ---------------------------------------------------------------------------
+# CloudWatch log groups — chef variety management
+# ---------------------------------------------------------------------------
+resource "aws_cloudwatch_log_group" "chef_list_varieties" {
+  name              = "/aws/lambda/coquito-chef-list-varieties"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "chef_create_variety" {
+  name              = "/aws/lambda/coquito-chef-create-variety"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "chef_update_variety" {
+  name              = "/aws/lambda/coquito-chef-update-variety"
   retention_in_days = 30
 }
