@@ -55,6 +55,12 @@ async function renderBatchManagement(_params: Record<string, string>): Promise<v
   await mountBatchManagement(appEl);
 }
 
+async function renderVarietyManagement(_params: Record<string, string>): Promise<void> {
+  const { mountVarietyManagement } = await import('./pages/variety-management/index');
+  appEl.innerHTML = '';
+  await mountVarietyManagement(appEl);
+}
+
 function renderNotFound(): void {
   appEl.innerHTML = `
     <div class="page-wrapper">
@@ -82,6 +88,10 @@ const routes: Route[] = [
   {
     pattern: /^#\/batches$/,
     render: renderBatchManagement,
+  },
+  {
+    pattern: /^#\/varieties$/,
+    render: renderVarietyManagement,
   },
 ];
 
@@ -255,13 +265,27 @@ function renderLogoutButton(): void {
 // ---------------------------------------------------------------------------
 function renderChefNav(): void {
   if (document.getElementById('chef-nav')) return;
-  const link = document.createElement('a');
-  link.id = 'chef-nav';
-  link.href = '#/batches';
-  link.textContent = 'Manage Batches';
-  link.style.cssText =
-    'position:fixed;bottom:1rem;left:1rem;padding:0.5rem 1rem;cursor:pointer;z-index:9998;text-decoration:none;background:var(--color-coconut,#5c3d1e);color:#fff;border-radius:4px';
-  document.body.appendChild(link);
+
+  const nav = document.createElement('nav');
+  nav.id = 'chef-nav';
+  nav.style.cssText = 'position:fixed;bottom:1rem;left:1rem;display:flex;gap:0.5rem;z-index:9998';
+
+  const linkStyle =
+    'padding:0.5rem 1rem;cursor:pointer;text-decoration:none;background:var(--color-coconut,#5c3d1e);color:#fff;border-radius:4px;font-size:0.875rem';
+
+  const batchesLink = document.createElement('a');
+  batchesLink.href = '#/batches';
+  batchesLink.textContent = 'Manage Batches';
+  batchesLink.style.cssText = linkStyle;
+
+  const varietiesLink = document.createElement('a');
+  varietiesLink.href = '#/varieties';
+  varietiesLink.textContent = 'Manage Varieties';
+  varietiesLink.style.cssText = linkStyle;
+
+  nav.appendChild(batchesLink);
+  nav.appendChild(varietiesLink);
+  document.body.appendChild(nav);
 }
 
 handleAuthCallback().then(async () => {

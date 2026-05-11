@@ -1,0 +1,266 @@
+.variety-management {
+  max-width: var(--max-width-cook);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+.variety-management__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.variety-management__title {
+  font-size: var(--font-size-xl);
+  color: var(--color-coconut-dark);
+  margin: 0;
+}
+
+/* ---- Variety list ---- */
+.variety-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+}
+
+.variety-row {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast);
+  min-height: var(--touch-target-min);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.variety-row:hover,
+.variety-row:focus-visible {
+  box-shadow: var(--shadow-sm);
+  outline: var(--border-width-thick) solid var(--color-border-focus);
+}
+
+.variety-row--inactive {
+  opacity: 0.7;
+  border-style: dashed;
+}
+
+.variety-row__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.variety-row__name {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  color: var(--color-coconut-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.variety-row__desc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.variety-row__meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ---- Status badges ---- */
+.variety-status {
+  display: inline-block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.variety-status--active {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.variety-status--inactive {
+  background: var(--color-cream-dark);
+  color: var(--color-text-secondary);
+}
+
+/* ---- Image placeholder ---- */
+.variety-img-placeholder {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: var(--color-cream-dark);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+/* ---- Empty state ---- */
+.variety-empty {
+  text-align: center;
+  padding: var(--space-12) var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.variety-empty__message {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-4);
+}
+
+/* ---- Form ---- */
+.variety-form {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.variety-form__title {
+  font-size: var(--font-size-md);
+  color: var(--color-coconut-dark);
+  margin-bottom: var(--space-4);
+}
+
+.variety-form__field {
+  margin-bottom: var(--space-4);
+}
+
+.variety-form__field--checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.variety-form__field--checkbox .variety-form__label {
+  margin-bottom: 0;
+}
+
+.variety-form__label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.variety-form__input {
+  width: 100%;
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  min-height: var(--touch-target-min);
+  box-sizing: border-box;
+}
+
+.variety-form__input:focus {
+  outline: var(--border-width-thick) solid var(--color-border-focus);
+  border-color: var(--color-border-focus);
+}
+
+.variety-form__input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.variety-form__error {
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  margin-top: var(--space-1);
+}
+
+.variety-form__checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.variety-form__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.variety-form__ingredients {
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+/* ---- Ingredient rows ---- */
+.variety-ingredient-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: var(--space-2);
+  align-items: end;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.variety-ingredient-row:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Name spans the full width on its own row above qty/unit/category/remove */
+.variety-ingredient-row__field--name {
+  grid-column: 1 / -1;
+}
+
+.variety-ingredient-row__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.variety-ingredient-row__remove {
+  align-self: flex-end;
+}
+
+/* ---- Error / warning messages ---- */
+.variety-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: var(--border-width) solid var(--color-error);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
+}
+
+.variety-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: var(--border-width) solid var(--color-warning);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
+}
