@@ -115,7 +115,9 @@ function renderIngredientRow(
     row.appendChild(hiddenId);
   }
 
-  const nameField = el('div', { class: 'variety-ingredient-row__field' });
+  const nameField = el('div', {
+    class: 'variety-ingredient-row__field variety-ingredient-row__field--name',
+  });
   const nameLabel = el('label', { class: 'variety-form__label', for: `ing-name-${idx}` }, 'Name');
   const nameInput = el<HTMLInputElement>('input', {
     class: 'variety-form__input',
