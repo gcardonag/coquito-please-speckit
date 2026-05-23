@@ -96,10 +96,15 @@ def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
 
     # Provide specific error codes for known violation types
     pickup_date = body.get("pickupDate", "")
+    if batch.status == "CLOSED":
+        return _response(410, {
+            "code": "BATCH_CLOSED",
+            "message": f"Ordering is closed for this batch.",
+        })
     if pickup_date and pickup_date <= batch.cutoff_date:
         return _response(400, {
             "code": "BATCH_CLOSED",
-            "message": f"Ordering is closed. Pickup date must be after {batch.cutoff_date}.",
+            "message": f"Pickup date must be after ordering cutoff date of {batch.cutoff_date}.",
         })
 
     bottle_provided = body.get("bottleProvided", False)
