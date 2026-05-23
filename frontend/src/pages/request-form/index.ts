@@ -36,6 +36,15 @@ export function mountRequestForm(container: HTMLElement): void {
 
   getBatchConfig(batchId)
     .then((batch) => {
+      if(batch.status === "CLOSED") {
+        container.innerHTML = `
+          <div class="page-wrapper">
+            <div class="card form-error" role="alert">
+              Sorry! That batch is no longer available to take requests. The chef is already preparing or shipping orders.
+            </div>
+          </div>`;
+        return
+      }
       container.innerHTML = '';
       renderForm(container, batch);
     })
@@ -298,9 +307,9 @@ function handleSubmit(
       let message = '¡Ay, algo pasó! Something went wrong. Please try again in a moment.';
 
       if (err instanceof ApiRequestError) {
-        if (err.code === 'BATCH_CLOSED') {
+        if (err.code === 'DATE_BEFORE_BATCH_CLOSE') {
           message =
-            'The ordering window for this date is closed. Please choose a different pickup date.';
+            `The pickup date you have specified is before the batch request cutoff of ${batch.cutoffDate}, which is when ingredients will be purchased. Please choose a later pickup date.`;
         } else if (err.code === 'BOTTLE_VOLUME_EXCEEDED') {
           message = `Your bottle volume exceeds the maximum allowed (${batch.maxBottleVolumeMl}ml). Please adjust.`;
         } else if (err.code === 'VALIDATION_ERROR') {
