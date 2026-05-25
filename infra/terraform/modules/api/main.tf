@@ -87,6 +87,8 @@ resource "aws_iam_role_policy" "lambda_cognito" {
         Action = [
           "cognito-idp:AdminCreateUser",
           "cognito-idp:AdminAddUserToGroup",
+          "cognito-idp:ListUsers",
+          "cognito-idp:AdminGetUser",
         ]
         Resource = var.cognito_user_pool_arn
       }
@@ -473,6 +475,10 @@ locals {
     chef_list_varieties      = aws_lambda_function.chef_list_varieties
     chef_create_variety      = aws_lambda_function.chef_create_variety
     chef_update_variety      = aws_lambda_function.chef_update_variety
+    chef_search_users        = aws_lambda_function.chef_search_users
+    chef_grant_batch_access  = aws_lambda_function.chef_grant_batch_access
+    chef_list_batch_access   = aws_lambda_function.chef_list_batch_access
+    chef_revoke_batch_access = aws_lambda_function.chef_revoke_batch_access
   }
   public_functions = {
     auth_token_exchange = aws_lambda_function.auth_token_exchange
@@ -1219,5 +1225,173 @@ resource "aws_cloudwatch_log_group" "chef_create_variety" {
 
 resource "aws_cloudwatch_log_group" "chef_update_variety" {
   name              = "/aws/lambda/coquito-chef-update-variety"
+  retention_in_days = 30
+}
+
+# ---------------------------------------------------------------------------
+# Lambda functions — chef batch access management (protected, chef-role required)
+# ---------------------------------------------------------------------------
+resource "aws_lambda_function" "chef_search_users" {
+  function_name    = "coquito-chef-search-users"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.chef_search_users.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT          = var.environment
+      COGNITO_USER_POOL_ID = var.cognito_user_pool_id
+    }
+  }
+}
+
+resource "aws_lambda_function" "chef_grant_batch_access" {
+  function_name    = "coquito-chef-grant-batch-access"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.chef_grant_batch_access.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT                 = var.environment
+      COGNITO_USER_POOL_ID        = var.cognito_user_pool_id
+      DYNAMODB_BATCH_ACCESS_TABLE = var.dynamodb_batch_access_table
+      DYNAMODB_BATCHES_TABLE      = var.dynamodb_batches_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "chef_list_batch_access" {
+  function_name    = "coquito-chef-list-batch-access"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.chef_list_batch_access.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT                 = var.environment
+      DYNAMODB_BATCH_ACCESS_TABLE = var.dynamodb_batch_access_table
+      DYNAMODB_BATCHES_TABLE      = var.dynamodb_batches_table
+    }
+  }
+}
+
+resource "aws_lambda_function" "chef_revoke_batch_access" {
+  function_name    = "coquito-chef-revoke-batch-access"
+  role             = aws_iam_role.lambda_exec.arn
+  runtime          = local.lambda_runtime
+  handler          = "${local.lambda_handler_prefix}.chef_revoke_batch_access.handler"
+  filename         = local.lambda_zip
+  source_code_hash = filebase64sha256(local.lambda_zip)
+  timeout          = 10
+  architectures    = local.lambda_architectures
+  layers           = [aws_lambda_layer_version.deps.arn]
+  environment {
+    variables = {
+      ENVIRONMENT                 = var.environment
+      DYNAMODB_BATCH_ACCESS_TABLE = var.dynamodb_batch_access_table
+      DYNAMODB_BATCHES_TABLE      = var.dynamodb_batches_table
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Integrations — chef batch access management
+# ---------------------------------------------------------------------------
+resource "aws_apigatewayv2_integration" "chef_search_users" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.chef_search_users.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "chef_grant_batch_access" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.chef_grant_batch_access.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "chef_list_batch_access" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.chef_list_batch_access.invoke_arn
+  payload_format_version = "2.0"
+}
+
+resource "aws_apigatewayv2_integration" "chef_revoke_batch_access" {
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.chef_revoke_batch_access.invoke_arn
+  payload_format_version = "2.0"
+}
+
+# ---------------------------------------------------------------------------
+# Routes — chef batch access management (protected, Lambda authorizer)
+# ---------------------------------------------------------------------------
+resource "aws_apigatewayv2_route" "chef_search_users" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /api/v1/chef/users"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.chef_search_users.id}"
+}
+
+resource "aws_apigatewayv2_route" "chef_grant_batch_access" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "PUT /api/v1/chef/batches/{id}/access/{userId}"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.chef_grant_batch_access.id}"
+}
+
+resource "aws_apigatewayv2_route" "chef_list_batch_access" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "GET /api/v1/chef/batches/{id}/access"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.chef_list_batch_access.id}"
+}
+
+resource "aws_apigatewayv2_route" "chef_revoke_batch_access" {
+  api_id             = aws_apigatewayv2_api.main.id
+  route_key          = "DELETE /api/v1/chef/batches/{id}/access/{userId}"
+  authorization_type = "CUSTOM"
+  authorizer_id      = aws_apigatewayv2_authorizer.main.id
+  target             = "integrations/${aws_apigatewayv2_integration.chef_revoke_batch_access.id}"
+}
+
+# ---------------------------------------------------------------------------
+# CloudWatch log groups — chef batch access management
+# ---------------------------------------------------------------------------
+resource "aws_cloudwatch_log_group" "chef_search_users" {
+  name              = "/aws/lambda/coquito-chef-search-users"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "chef_grant_batch_access" {
+  name              = "/aws/lambda/coquito-chef-grant-batch-access"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "chef_list_batch_access" {
+  name              = "/aws/lambda/coquito-chef-list-batch-access"
+  retention_in_days = 30
+}
+
+resource "aws_cloudwatch_log_group" "chef_revoke_batch_access" {
+  name              = "/aws/lambda/coquito-chef-revoke-batch-access"
   retention_in_days = 30
 }

@@ -42,6 +42,10 @@ def varieties_table_name() -> str:
     return os.environ["DYNAMODB_VARIETIES_TABLE"]
 
 
+def batch_access_table_name() -> str:
+    return os.environ["DYNAMODB_BATCH_ACCESS_TABLE"]
+
+
 # ---- CRUD helpers ----
 
 def get_item(table_name: str, key: dict[str, Any]) -> dict[str, Any]:
@@ -104,6 +108,26 @@ def update_item(
             raise ConflictError("Conditional update failed") from exc
         raise
     return response.get("Attributes", {})
+
+
+def query_by_partition_key(
+    table_name: str,
+    partition_key_name: str,
+    partition_key_value: str,
+) -> list[dict[str, Any]]:
+    """Query all items with a given partition key value (no GSI, uses primary key)."""
+    from boto3.dynamodb.conditions import Key  # noqa: PLC0415
+    table = get_table(table_name)
+    response = table.query(
+        KeyConditionExpression=Key(partition_key_name).eq(partition_key_value),
+    )
+    return response.get("Items", [])
+
+
+def delete_item(table_name: str, key: dict[str, Any]) -> None:
+    """Delete an item by primary key."""
+    table = get_table(table_name)
+    table.delete_item(Key=key)
 
 
 def query_by_index(

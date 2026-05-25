@@ -1,12 +1,19 @@
 import './batch-management.css';
 import {
   ApiRequestError,
+  type BatchAccessUser,
   type BatchSummary,
   type CreateBatchPayload,
+  type CurrentUser,
   type UpdateBatchPayload,
   createBatch,
+  createUser,
+  grantBatchAccess,
+  listBatchAccess,
   listBatches,
   listVarieties,
+  revokeBatchAccess,
+  searchUsers,
   updateBatch,
   updateBatchStatus,
   type VarietySummary,
@@ -16,6 +23,7 @@ import {
 // State
 // ---------------------------------------------------------------------------
 let batches: BatchSummary[] = [];
+let currentUser: CurrentUser | null = null;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -162,6 +170,10 @@ async function renderDetail(container: HTMLElement, batch: BatchSummary): Promis
   });
 
   renderStatusControls(detailEl, container, batch);
+
+  if (currentUser?.role === 'chef' && batch.status === 'OPEN') {
+    renderManageAccessPanel(detailEl, batch);
+  }
 }
 
 function renderReadOnlyFields(
@@ -655,9 +667,393 @@ async function showCreateForm(container: HTMLElement): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Manage Access panel
+// ---------------------------------------------------------------------------
+function renderManageAccessPanel(detailEl: HTMLElement, batch: BatchSummary): void {
+  const panel = el('div', { class: 'access-panel', 'data-testid': 'manage-access-panel' });
+
+  const toggle = el<HTMLButtonElement>('button', {
+    type: 'button',
+    class: 'btn btn--secondary access-panel__toggle',
+    'data-testid': 'manage-access-toggle',
+    'aria-expanded': 'false',
+  }, 'Manage Access ▼');
+
+  const body = el('div', { class: 'access-panel__body', hidden: '' });
+  panel.appendChild(toggle);
+  panel.appendChild(body);
+  detailEl.appendChild(panel);
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    if (expanded) {
+      body.setAttribute('hidden', '');
+    } else {
+      body.removeAttribute('hidden');
+      refreshAccessPanel(body, batch);
+    }
+  });
+}
+
+async function refreshAccessPanel(body: HTMLElement, batch: BatchSummary): Promise<void> {
+  body.innerHTML = '<p class="access-panel__loading">Loading…</p>';
+  try {
+    const result = await listBatchAccess(batch.batchId);
+    body.innerHTML = '';
+    renderSearchSection(body, batch);
+    renderNewUserForm(body, batch, result.users);
+    renderAccessList(body, batch, result.users);
+  } catch (err) {
+    body.innerHTML = '';
+    const msg = el('p', { class: 'access-panel__error', role: 'alert' });
+    msg.textContent =
+      err instanceof ApiRequestError ? err.message : 'Failed to load the access list. Please refresh and try again.';
+    body.appendChild(msg);
+  }
+}
+
+function renderSearchSection(body: HTMLElement, batch: BatchSummary): void {
+  const section = el('div', { class: 'access-search' });
+  const label = el<HTMLLabelElement>('label', {
+    class: 'batch-form__label',
+    for: 'access-search-input',
+  }, 'Search users:');
+  const input = el<HTMLInputElement>('input', {
+    class: 'batch-form__input',
+    type: 'search',
+    id: 'access-search-input',
+    'data-testid': 'access-search-input',
+    placeholder: 'Name or email…',
+    'aria-label': 'Search users by name or email',
+  });
+  const btn = el<HTMLButtonElement>('button', {
+    type: 'button',
+    class: 'btn btn--secondary',
+    'data-testid': 'access-search-btn',
+  }, 'Search');
+  const resultsEl = el('div', { class: 'access-results', 'data-testid': 'access-search-results', 'aria-live': 'polite' });
+
+  btn.addEventListener('click', () => runSearch(input.value.trim(), resultsEl, body, batch));
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') runSearch(input.value.trim(), resultsEl, body, batch);
+  });
+
+  section.appendChild(label);
+  section.appendChild(input);
+  section.appendChild(btn);
+  section.appendChild(resultsEl);
+  body.appendChild(section);
+}
+
+async function runSearch(
+  query: string,
+  resultsEl: HTMLElement,
+  body: HTMLElement,
+  batch: BatchSummary,
+): Promise<void> {
+  if (!query) {
+    resultsEl.textContent = '';
+    return;
+  }
+  resultsEl.textContent = 'Searching…';
+  try {
+    const { users } = await searchUsers(query);
+    resultsEl.innerHTML = '';
+    if (users.length === 0) {
+      const msg = el('p', { class: 'access-empty', 'data-testid': 'search-empty' });
+      msg.textContent = 'No users found. Try creating a new user below.';
+      resultsEl.appendChild(msg);
+      return;
+    }
+    const list = el('ul', { class: 'access-user-list', role: 'list' });
+    for (const u of users) {
+      const li = el('li', { class: 'access-user-row', role: 'listitem' });
+      const info = el('span', { class: 'access-user-row__info' });
+      info.textContent = `${u.firstName}${u.lastName ? ' ' + u.lastName : ''} (${u.email})`;
+      const grantBtn = el<HTMLButtonElement>('button', {
+        type: 'button',
+        class: 'btn btn--primary access-user-row__grant',
+        'data-testid': `grant-btn-${u.userId}`,
+      }, 'Grant Access');
+      grantBtn.addEventListener('click', () => handleGrant(u.userId, body, batch));
+      li.appendChild(info);
+      li.appendChild(grantBtn);
+      list.appendChild(li);
+    }
+    if (users.length === 20) {
+      const hint = el('p', { class: 'access-truncation-hint' });
+      hint.textContent = 'Showing first 20 results — refine your search for more.';
+      resultsEl.appendChild(hint);
+    }
+    resultsEl.appendChild(list);
+  } catch (err) {
+    resultsEl.textContent =
+      err instanceof ApiRequestError ? err.message : 'Search failed. Please try again.';
+  }
+}
+
+async function handleGrant(userId: string, body: HTMLElement, batch: BatchSummary): Promise<void> {
+  try {
+    await grantBatchAccess(batch.batchId, userId);
+    refreshAccessPanel(body, batch);
+  } catch (err) {
+    const msg = err instanceof ApiRequestError ? err.message : 'Failed to grant access. Please try again.';
+    showAccessError(body, msg);
+  }
+}
+
+function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: BatchAccessUser[]): void {
+  const section = el('div', { class: 'access-new-user' });
+
+  const toggleBtn = el<HTMLButtonElement>('button', {
+    type: 'button',
+    class: 'btn btn--secondary',
+    'data-testid': 'new-user-toggle',
+    'aria-expanded': 'false',
+  }, '+ New User');
+
+  const formWrap = el('div', { class: 'access-new-user__form', hidden: '' });
+  section.appendChild(toggleBtn);
+  section.appendChild(formWrap);
+  body.appendChild(section);
+
+  toggleBtn.addEventListener('click', () => {
+    const open = toggleBtn.getAttribute('aria-expanded') === 'true';
+    toggleBtn.setAttribute('aria-expanded', String(!open));
+    if (open) formWrap.setAttribute('hidden', ''); else formWrap.removeAttribute('hidden');
+  });
+
+  const form = el<HTMLFormElement>('form', { 'data-testid': 'new-user-form' });
+
+  const emailWrap = el('div', { class: 'batch-form__field' });
+  const emailLabel = el<HTMLLabelElement>('label', { class: 'batch-form__label', for: 'nu-email' }, 'Email *');
+  const emailInput = el<HTMLInputElement>('input', {
+    class: 'batch-form__input',
+    type: 'email',
+    id: 'nu-email',
+    'data-testid': 'new-user-email',
+    required: '',
+    'aria-required': 'true',
+  });
+  emailWrap.appendChild(emailLabel);
+  emailWrap.appendChild(emailInput);
+
+  const firstWrap = el('div', { class: 'batch-form__field' });
+  const firstLabel = el<HTMLLabelElement>('label', { class: 'batch-form__label', for: 'nu-first' }, 'First Name *');
+  const firstInput = el<HTMLInputElement>('input', {
+    class: 'batch-form__input',
+    type: 'text',
+    id: 'nu-first',
+    'data-testid': 'new-user-firstName',
+    required: '',
+    'aria-required': 'true',
+  });
+  firstWrap.appendChild(firstLabel);
+  firstWrap.appendChild(firstInput);
+
+  const lastWrap = el('div', { class: 'batch-form__field' });
+  const lastLabel = el<HTMLLabelElement>('label', { class: 'batch-form__label', for: 'nu-last' }, 'Last Name');
+  const lastInput = el<HTMLInputElement>('input', {
+    class: 'batch-form__input',
+    type: 'text',
+    id: 'nu-last',
+    'data-testid': 'new-user-lastName',
+  });
+  lastWrap.appendChild(lastLabel);
+  lastWrap.appendChild(lastInput);
+
+  const errorEl = el('div', {
+    class: 'batch-form__error',
+    role: 'alert',
+    hidden: '',
+    'data-testid': 'new-user-error',
+  });
+
+  const actions = el('div', { class: 'batch-form__actions' });
+  const submitBtn = el<HTMLButtonElement>('button', {
+    type: 'submit',
+    class: 'btn btn--primary',
+    'data-testid': 'new-user-submit',
+  }, 'Create & Grant Access');
+
+  actions.appendChild(submitBtn);
+  form.appendChild(emailWrap);
+  form.appendChild(firstWrap);
+  form.appendChild(lastWrap);
+  form.appendChild(errorEl);
+  form.appendChild(actions);
+  formWrap.appendChild(form);
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.setAttribute('hidden', '');
+    errorEl.textContent = '';
+
+    const email = emailInput.value.trim();
+    const firstName = firstInput.value.trim();
+    const lastName = lastInput.value.trim() || undefined;
+
+    if (!email || !firstName) {
+      errorEl.textContent = 'Email and first name are required.';
+      errorEl.removeAttribute('hidden');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    let createdUserId: string | null = null;
+    try {
+      const created = await createUser({ email, firstName, lastName });
+      createdUserId = created.userId;
+    } catch (err) {
+      submitBtn.disabled = false;
+      errorEl.textContent =
+        err instanceof ApiRequestError ? err.message : 'Failed to create user.';
+      errorEl.removeAttribute('hidden');
+      return;
+    }
+
+    try {
+      await grantBatchAccess(batch.batchId, createdUserId);
+      form.reset();
+      toggleBtn.setAttribute('aria-expanded', 'false');
+      formWrap.setAttribute('hidden', '');
+      refreshAccessPanel(body, batch);
+    } catch (err) {
+      submitBtn.disabled = false;
+      const userEmail = email;
+      const userId = createdUserId;
+      errorEl.removeAttribute('hidden');
+      errorEl.innerHTML = '';
+      const msg = document.createTextNode(
+        `User "${userEmail}" was created but access grant failed. `
+      );
+      const retryBtn = el<HTMLButtonElement>('button', {
+        type: 'button',
+        class: 'btn btn--secondary',
+        'data-testid': 'grant-retry-btn',
+      }, 'Grant access');
+      retryBtn.addEventListener('click', () => {
+        errorEl.setAttribute('hidden', '');
+        handleGrant(userId, body, batch);
+      });
+      errorEl.appendChild(msg);
+      errorEl.appendChild(retryBtn);
+    }
+  });
+}
+
+function renderAccessList(
+  body: HTMLElement,
+  batch: BatchSummary,
+  users: BatchAccessUser[],
+): void {
+  const section = el('div', { class: 'access-list-section' });
+  const heading = el('p', { class: 'access-list__heading' }, '── Users with access ──');
+  section.appendChild(heading);
+
+  if (users.length === 0) {
+    const empty = el('p', {
+      class: 'access-empty',
+      'data-testid': 'access-empty-state',
+    });
+    empty.textContent = 'No users have been granted access to this batch.';
+    section.appendChild(empty);
+    body.appendChild(section);
+    return;
+  }
+
+  const list = el('ul', { class: 'access-user-list', role: 'list', 'data-testid': 'access-user-list' });
+  for (const u of users) {
+    const li = el('li', { class: 'access-user-row', role: 'listitem' });
+    const name = el('span', { class: 'access-user-row__name' });
+    name.textContent = `${u.firstName}${u.lastName ? ' ' + u.lastName : ''}`;
+    const email = el('span', { class: 'access-user-row__email' });
+    email.textContent = ` (${u.email})`;
+    li.appendChild(name);
+    li.appendChild(email);
+
+    const removeBtn = el<HTMLButtonElement>('button', {
+      type: 'button',
+      class: 'btn btn--secondary access-user-row__remove',
+      'data-testid': `remove-btn-${u.userId}`,
+    }, 'Remove');
+    removeBtn.addEventListener('click', () => showRevokeConfirmation(body, batch, u));
+    li.appendChild(removeBtn);
+    list.appendChild(li);
+  }
+  section.appendChild(list);
+  body.appendChild(section);
+}
+
+function showRevokeConfirmation(
+  body: HTMLElement,
+  batch: BatchSummary,
+  user: BatchAccessUser,
+): void {
+  const overlay = el('div', { class: 'batch-dialog-overlay', 'data-testid': 'revoke-overlay' });
+  const dialog = el('div', {
+    class: 'batch-dialog',
+    role: 'dialog',
+    'aria-modal': 'true',
+    'aria-labelledby': 'revoke-dialog-title',
+  });
+
+  const title = el('h4', { class: 'batch-dialog__title', id: 'revoke-dialog-title' }, 'Remove Access?');
+  const msg = el('p', { class: 'batch-dialog__message' });
+  msg.textContent = `Remove ${user.firstName}${user.lastName ? ' ' + user.lastName : ''} (${user.email}) from this batch?`;
+
+  const actions = el('div', { class: 'batch-dialog__actions' });
+
+  const cancelBtn = el<HTMLButtonElement>('button', {
+    type: 'button',
+    class: 'btn btn--secondary',
+    'data-testid': 'revoke-cancel-btn',
+  }, 'Cancel');
+  cancelBtn.addEventListener('click', () => overlay.remove());
+
+  const confirmBtn = el<HTMLButtonElement>('button', {
+    type: 'button',
+    class: 'btn btn--primary',
+    'data-testid': 'revoke-confirm-btn',
+  }, 'Remove');
+  confirmBtn.addEventListener('click', async () => {
+    overlay.remove();
+    try {
+      await revokeBatchAccess(batch.batchId, user.userId);
+      refreshAccessPanel(body, batch);
+    } catch (err) {
+      const errMsg = err instanceof ApiRequestError ? err.message : 'Failed to revoke access. Please try again.';
+      showAccessError(body, errMsg);
+    }
+  });
+
+  actions.appendChild(cancelBtn);
+  actions.appendChild(confirmBtn);
+  dialog.appendChild(title);
+  dialog.appendChild(msg);
+  dialog.appendChild(actions);
+  overlay.appendChild(dialog);
+  document.body.appendChild(overlay);
+  confirmBtn.focus();
+}
+
+function showAccessError(body: HTMLElement, message: string): void {
+  const existing = body.querySelector('[data-testid="access-error"]');
+  if (existing) existing.remove();
+  const err = el('p', { class: 'access-panel__error', role: 'alert', 'data-testid': 'access-error' });
+  err.textContent = message;
+  body.prepend(err);
+}
+
+// ---------------------------------------------------------------------------
 // Mount
 // ---------------------------------------------------------------------------
-export async function mountBatchManagement(container: HTMLElement): Promise<void> {
+export async function mountBatchManagement(
+  container: HTMLElement,
+  user?: CurrentUser | null,
+): Promise<void> {
+  currentUser = user ?? null;
   container.innerHTML = `
     <div class="batch-management">
       <div class="batch-management__header">

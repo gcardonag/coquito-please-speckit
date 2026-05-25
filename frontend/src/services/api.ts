@@ -278,6 +278,73 @@ export function markIngredientAcquired(
   );
 }
 
+// ---- Chef batch access types ----
+
+export interface UserSummary {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName?: string;
+}
+
+export interface BatchAccessUser {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName?: string;
+  grantedAt: string;
+}
+
+export interface BatchAccessGrant {
+  batchId: string;
+  userId: string;
+  grantedAt: string;
+}
+
+export interface CreateUserPayload {
+  email: string;
+  firstName: string;
+  lastName?: string;
+}
+
+export interface CreateUserResponse {
+  userId: string;
+  email: string;
+}
+
+// ---- Chef batch access endpoints ----
+
+export function searchUsers(query: string): Promise<{ users: UserSummary[] }> {
+  return request(`/chef/users?query=${encodeURIComponent(query)}`);
+}
+
+export function listBatchAccess(
+  batchId: string
+): Promise<{ batchId: string; users: BatchAccessUser[] }> {
+  return request(`/chef/batches/${encodeURIComponent(batchId)}/access`);
+}
+
+export function grantBatchAccess(batchId: string, userId: string): Promise<BatchAccessGrant> {
+  return request(
+    `/chef/batches/${encodeURIComponent(batchId)}/access/${encodeURIComponent(userId)}`,
+    { method: 'PUT' }
+  );
+}
+
+export function revokeBatchAccess(batchId: string, userId: string): Promise<void> {
+  return request(
+    `/chef/batches/${encodeURIComponent(batchId)}/access/${encodeURIComponent(userId)}`,
+    { method: 'DELETE' }
+  );
+}
+
+export function createUser(payload: CreateUserPayload): Promise<CreateUserResponse> {
+  return request('/users', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 // ---- Chef variety management types ----
 
 export interface ChefIngredientDetail {

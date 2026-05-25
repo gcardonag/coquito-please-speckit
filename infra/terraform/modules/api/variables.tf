@@ -74,3 +74,8 @@ variable "cloudfront_assets_base_url" {
   description = "CloudFront base URL for media assets (e.g., https://coquito.gcardona.me)"
   type        = string
 }
+
+variable "dynamodb_batch_access_table" {
+  description = "DynamoDB batch-access table name"
+  type        = string
+}

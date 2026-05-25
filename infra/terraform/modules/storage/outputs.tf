@@ -14,3 +14,7 @@ output "cloudfront_assets_base_url" {
   description = "Base URL for CloudFront-served media assets"
   value       = "https://${var.domain}"
 }
+
+output "batch_access_table_name" {
+  value = aws_dynamodb_table.batch_access.name
+}

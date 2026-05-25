@@ -23,8 +23,8 @@ uv run pytest tests/unit/ -v
 # Run contract tests (uses moto for AWS mocks)
 uv run pytest tests/contract/ -v
 
-# Run a specific new test file
-uv run pytest tests/contract/test_chef_batch_access.py -v
+# Run the new access management test files
+uv run pytest tests/contract/test_chef_search_users.py tests/contract/test_chef_grant_batch_access.py tests/contract/test_chef_list_batch_access.py tests/contract/test_chef_revoke_batch_access.py tests/contract/test_create_user.py -v
 ```
 
 ## Frontend Development
