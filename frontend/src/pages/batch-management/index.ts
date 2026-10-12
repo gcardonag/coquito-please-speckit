@@ -672,12 +672,16 @@ async function showCreateForm(container: HTMLElement): Promise<void> {
 function renderManageAccessPanel(detailEl: HTMLElement, batch: BatchSummary): void {
   const panel = el('div', { class: 'access-panel', 'data-testid': 'manage-access-panel' });
 
-  const toggle = el<HTMLButtonElement>('button', {
-    type: 'button',
-    class: 'btn btn--secondary access-panel__toggle',
-    'data-testid': 'manage-access-toggle',
-    'aria-expanded': 'false',
-  }, 'Manage Access ▼');
+  const toggle = el<HTMLButtonElement>(
+    'button',
+    {
+      type: 'button',
+      class: 'btn btn--secondary access-panel__toggle',
+      'data-testid': 'manage-access-toggle',
+      'aria-expanded': 'false',
+    },
+    'Manage Access ▼'
+  );
 
   const body = el('div', { class: 'access-panel__body', hidden: '' });
   panel.appendChild(toggle);
@@ -708,17 +712,23 @@ async function refreshAccessPanel(body: HTMLElement, batch: BatchSummary): Promi
     body.innerHTML = '';
     const msg = el('p', { class: 'access-panel__error', role: 'alert' });
     msg.textContent =
-      err instanceof ApiRequestError ? err.message : 'Failed to load the access list. Please refresh and try again.';
+      err instanceof ApiRequestError
+        ? err.message
+        : 'Failed to load the access list. Please refresh and try again.';
     body.appendChild(msg);
   }
 }
 
 function renderSearchSection(body: HTMLElement, batch: BatchSummary): void {
   const section = el('div', { class: 'access-search' });
-  const label = el<HTMLLabelElement>('label', {
-    class: 'batch-form__label',
-    for: 'access-search-input',
-  }, 'Search users:');
+  const label = el<HTMLLabelElement>(
+    'label',
+    {
+      class: 'batch-form__label',
+      for: 'access-search-input',
+    },
+    'Search users:'
+  );
   const input = el<HTMLInputElement>('input', {
     class: 'batch-form__input',
     type: 'search',
@@ -727,12 +737,20 @@ function renderSearchSection(body: HTMLElement, batch: BatchSummary): void {
     placeholder: 'Name or email…',
     'aria-label': 'Search users by name or email',
   });
-  const btn = el<HTMLButtonElement>('button', {
-    type: 'button',
-    class: 'btn btn--secondary',
-    'data-testid': 'access-search-btn',
-  }, 'Search');
-  const resultsEl = el('div', { class: 'access-results', 'data-testid': 'access-search-results', 'aria-live': 'polite' });
+  const btn = el<HTMLButtonElement>(
+    'button',
+    {
+      type: 'button',
+      class: 'btn btn--secondary',
+      'data-testid': 'access-search-btn',
+    },
+    'Search'
+  );
+  const resultsEl = el('div', {
+    class: 'access-results',
+    'data-testid': 'access-search-results',
+    'aria-live': 'polite',
+  });
 
   btn.addEventListener('click', () => runSearch(input.value.trim(), resultsEl, body, batch));
   input.addEventListener('keydown', (e) => {
@@ -750,7 +768,7 @@ async function runSearch(
   query: string,
   resultsEl: HTMLElement,
   body: HTMLElement,
-  batch: BatchSummary,
+  batch: BatchSummary
 ): Promise<void> {
   if (!query) {
     resultsEl.textContent = '';
@@ -771,11 +789,15 @@ async function runSearch(
       const li = el('li', { class: 'access-user-row', role: 'listitem' });
       const info = el('span', { class: 'access-user-row__info' });
       info.textContent = `${u.firstName}${u.lastName ? ' ' + u.lastName : ''} (${u.email})`;
-      const grantBtn = el<HTMLButtonElement>('button', {
-        type: 'button',
-        class: 'btn btn--primary access-user-row__grant',
-        'data-testid': `grant-btn-${u.userId}`,
-      }, 'Grant Access');
+      const grantBtn = el<HTMLButtonElement>(
+        'button',
+        {
+          type: 'button',
+          class: 'btn btn--primary access-user-row__grant',
+          'data-testid': `grant-btn-${u.userId}`,
+        },
+        'Grant Access'
+      );
       grantBtn.addEventListener('click', () => handleGrant(u.userId, body, batch));
       li.appendChild(info);
       li.appendChild(grantBtn);
@@ -798,20 +820,29 @@ async function handleGrant(userId: string, body: HTMLElement, batch: BatchSummar
     await grantBatchAccess(batch.batchId, userId);
     refreshAccessPanel(body, batch);
   } catch (err) {
-    const msg = err instanceof ApiRequestError ? err.message : 'Failed to grant access. Please try again.';
+    const msg =
+      err instanceof ApiRequestError ? err.message : 'Failed to grant access. Please try again.';
     showAccessError(body, msg);
   }
 }
 
-function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: BatchAccessUser[]): void {
+function renderNewUserForm(
+  body: HTMLElement,
+  batch: BatchSummary,
+  _users: BatchAccessUser[]
+): void {
   const section = el('div', { class: 'access-new-user' });
 
-  const toggleBtn = el<HTMLButtonElement>('button', {
-    type: 'button',
-    class: 'btn btn--secondary',
-    'data-testid': 'new-user-toggle',
-    'aria-expanded': 'false',
-  }, '+ New User');
+  const toggleBtn = el<HTMLButtonElement>(
+    'button',
+    {
+      type: 'button',
+      class: 'btn btn--secondary',
+      'data-testid': 'new-user-toggle',
+      'aria-expanded': 'false',
+    },
+    '+ New User'
+  );
 
   const formWrap = el('div', { class: 'access-new-user__form', hidden: '' });
   section.appendChild(toggleBtn);
@@ -821,13 +852,18 @@ function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: Batch
   toggleBtn.addEventListener('click', () => {
     const open = toggleBtn.getAttribute('aria-expanded') === 'true';
     toggleBtn.setAttribute('aria-expanded', String(!open));
-    if (open) formWrap.setAttribute('hidden', ''); else formWrap.removeAttribute('hidden');
+    if (open) formWrap.setAttribute('hidden', '');
+    else formWrap.removeAttribute('hidden');
   });
 
   const form = el<HTMLFormElement>('form', { 'data-testid': 'new-user-form' });
 
   const emailWrap = el('div', { class: 'batch-form__field' });
-  const emailLabel = el<HTMLLabelElement>('label', { class: 'batch-form__label', for: 'nu-email' }, 'Email *');
+  const emailLabel = el<HTMLLabelElement>(
+    'label',
+    { class: 'batch-form__label', for: 'nu-email' },
+    'Email *'
+  );
   const emailInput = el<HTMLInputElement>('input', {
     class: 'batch-form__input',
     type: 'email',
@@ -840,7 +876,11 @@ function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: Batch
   emailWrap.appendChild(emailInput);
 
   const firstWrap = el('div', { class: 'batch-form__field' });
-  const firstLabel = el<HTMLLabelElement>('label', { class: 'batch-form__label', for: 'nu-first' }, 'First Name *');
+  const firstLabel = el<HTMLLabelElement>(
+    'label',
+    { class: 'batch-form__label', for: 'nu-first' },
+    'First Name *'
+  );
   const firstInput = el<HTMLInputElement>('input', {
     class: 'batch-form__input',
     type: 'text',
@@ -853,7 +893,11 @@ function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: Batch
   firstWrap.appendChild(firstInput);
 
   const lastWrap = el('div', { class: 'batch-form__field' });
-  const lastLabel = el<HTMLLabelElement>('label', { class: 'batch-form__label', for: 'nu-last' }, 'Last Name');
+  const lastLabel = el<HTMLLabelElement>(
+    'label',
+    { class: 'batch-form__label', for: 'nu-last' },
+    'Last Name'
+  );
   const lastInput = el<HTMLInputElement>('input', {
     class: 'batch-form__input',
     type: 'text',
@@ -871,11 +915,15 @@ function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: Batch
   });
 
   const actions = el('div', { class: 'batch-form__actions' });
-  const submitBtn = el<HTMLButtonElement>('button', {
-    type: 'submit',
-    class: 'btn btn--primary',
-    'data-testid': 'new-user-submit',
-  }, 'Create & Grant Access');
+  const submitBtn = el<HTMLButtonElement>(
+    'button',
+    {
+      type: 'submit',
+      class: 'btn btn--primary',
+      'data-testid': 'new-user-submit',
+    },
+    'Create & Grant Access'
+  );
 
   actions.appendChild(submitBtn);
   form.appendChild(emailWrap);
@@ -907,8 +955,7 @@ function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: Batch
       createdUserId = created.userId;
     } catch (err) {
       submitBtn.disabled = false;
-      errorEl.textContent =
-        err instanceof ApiRequestError ? err.message : 'Failed to create user.';
+      errorEl.textContent = err instanceof ApiRequestError ? err.message : 'Failed to create user.';
       errorEl.removeAttribute('hidden');
       return;
     }
@@ -928,11 +975,15 @@ function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: Batch
       const msg = document.createTextNode(
         `User "${userEmail}" was created but access grant failed. `
       );
-      const retryBtn = el<HTMLButtonElement>('button', {
-        type: 'button',
-        class: 'btn btn--secondary',
-        'data-testid': 'grant-retry-btn',
-      }, 'Grant access');
+      const retryBtn = el<HTMLButtonElement>(
+        'button',
+        {
+          type: 'button',
+          class: 'btn btn--secondary',
+          'data-testid': 'grant-retry-btn',
+        },
+        'Grant access'
+      );
       retryBtn.addEventListener('click', () => {
         errorEl.setAttribute('hidden', '');
         handleGrant(userId, body, batch);
@@ -943,11 +994,7 @@ function renderNewUserForm(body: HTMLElement, batch: BatchSummary, _users: Batch
   });
 }
 
-function renderAccessList(
-  body: HTMLElement,
-  batch: BatchSummary,
-  users: BatchAccessUser[],
-): void {
+function renderAccessList(body: HTMLElement, batch: BatchSummary, users: BatchAccessUser[]): void {
   const section = el('div', { class: 'access-list-section' });
   const heading = el('p', { class: 'access-list__heading' }, '── Users with access ──');
   section.appendChild(heading);
@@ -963,7 +1010,11 @@ function renderAccessList(
     return;
   }
 
-  const list = el('ul', { class: 'access-user-list', role: 'list', 'data-testid': 'access-user-list' });
+  const list = el('ul', {
+    class: 'access-user-list',
+    role: 'list',
+    'data-testid': 'access-user-list',
+  });
   for (const u of users) {
     const li = el('li', { class: 'access-user-row', role: 'listitem' });
     const name = el('span', { class: 'access-user-row__name' });
@@ -973,11 +1024,15 @@ function renderAccessList(
     li.appendChild(name);
     li.appendChild(email);
 
-    const removeBtn = el<HTMLButtonElement>('button', {
-      type: 'button',
-      class: 'btn btn--secondary access-user-row__remove',
-      'data-testid': `remove-btn-${u.userId}`,
-    }, 'Remove');
+    const removeBtn = el<HTMLButtonElement>(
+      'button',
+      {
+        type: 'button',
+        class: 'btn btn--secondary access-user-row__remove',
+        'data-testid': `remove-btn-${u.userId}`,
+      },
+      'Remove'
+    );
     removeBtn.addEventListener('click', () => showRevokeConfirmation(body, batch, u));
     li.appendChild(removeBtn);
     list.appendChild(li);
@@ -989,7 +1044,7 @@ function renderAccessList(
 function showRevokeConfirmation(
   body: HTMLElement,
   batch: BatchSummary,
-  user: BatchAccessUser,
+  user: BatchAccessUser
 ): void {
   const overlay = el('div', { class: 'batch-dialog-overlay', 'data-testid': 'revoke-overlay' });
   const dialog = el('div', {
@@ -999,31 +1054,44 @@ function showRevokeConfirmation(
     'aria-labelledby': 'revoke-dialog-title',
   });
 
-  const title = el('h4', { class: 'batch-dialog__title', id: 'revoke-dialog-title' }, 'Remove Access?');
+  const title = el(
+    'h4',
+    { class: 'batch-dialog__title', id: 'revoke-dialog-title' },
+    'Remove Access?'
+  );
   const msg = el('p', { class: 'batch-dialog__message' });
   msg.textContent = `Remove ${user.firstName}${user.lastName ? ' ' + user.lastName : ''} (${user.email}) from this batch?`;
 
   const actions = el('div', { class: 'batch-dialog__actions' });
 
-  const cancelBtn = el<HTMLButtonElement>('button', {
-    type: 'button',
-    class: 'btn btn--secondary',
-    'data-testid': 'revoke-cancel-btn',
-  }, 'Cancel');
+  const cancelBtn = el<HTMLButtonElement>(
+    'button',
+    {
+      type: 'button',
+      class: 'btn btn--secondary',
+      'data-testid': 'revoke-cancel-btn',
+    },
+    'Cancel'
+  );
   cancelBtn.addEventListener('click', () => overlay.remove());
 
-  const confirmBtn = el<HTMLButtonElement>('button', {
-    type: 'button',
-    class: 'btn btn--primary',
-    'data-testid': 'revoke-confirm-btn',
-  }, 'Remove');
+  const confirmBtn = el<HTMLButtonElement>(
+    'button',
+    {
+      type: 'button',
+      class: 'btn btn--primary',
+      'data-testid': 'revoke-confirm-btn',
+    },
+    'Remove'
+  );
   confirmBtn.addEventListener('click', async () => {
     overlay.remove();
     try {
       await revokeBatchAccess(batch.batchId, user.userId);
       refreshAccessPanel(body, batch);
     } catch (err) {
-      const errMsg = err instanceof ApiRequestError ? err.message : 'Failed to revoke access. Please try again.';
+      const errMsg =
+        err instanceof ApiRequestError ? err.message : 'Failed to revoke access. Please try again.';
       showAccessError(body, errMsg);
     }
   });
@@ -1041,7 +1109,11 @@ function showRevokeConfirmation(
 function showAccessError(body: HTMLElement, message: string): void {
   const existing = body.querySelector('[data-testid="access-error"]');
   if (existing) existing.remove();
-  const err = el('p', { class: 'access-panel__error', role: 'alert', 'data-testid': 'access-error' });
+  const err = el('p', {
+    class: 'access-panel__error',
+    role: 'alert',
+    'data-testid': 'access-error',
+  });
   err.textContent = message;
   body.prepend(err);
 }
@@ -1051,7 +1123,7 @@ function showAccessError(body: HTMLElement, message: string): void {
 // ---------------------------------------------------------------------------
 export async function mountBatchManagement(
   container: HTMLElement,
-  user?: CurrentUser | null,
+  user?: CurrentUser | null
 ): Promise<void> {
   currentUser = user ?? null;
   container.innerHTML = `
