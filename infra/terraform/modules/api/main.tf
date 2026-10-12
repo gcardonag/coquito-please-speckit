@@ -362,10 +362,11 @@ resource "aws_lambda_function" "get_batch_config" {
   layers        = [aws_lambda_layer_version.deps.arn]
   environment {
     variables = {
-      ENVIRONMENT              = var.environment
-      DYNAMODB_REQUESTS_TABLE  = var.dynamodb_requests_table
-      DYNAMODB_BATCHES_TABLE   = var.dynamodb_batches_table
-      DYNAMODB_VARIETIES_TABLE = var.dynamodb_varieties_table
+      ENVIRONMENT                 = var.environment
+      DYNAMODB_REQUESTS_TABLE     = var.dynamodb_requests_table
+      DYNAMODB_BATCHES_TABLE      = var.dynamodb_batches_table
+      DYNAMODB_VARIETIES_TABLE    = var.dynamodb_varieties_table
+      DYNAMODB_BATCH_ACCESS_TABLE = var.dynamodb_batch_access_table
     }
   }
 }

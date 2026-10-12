@@ -80,12 +80,18 @@ class TestAuthorizedUserAccess:
 
         assert result["statusCode"] == 201
 
-    def test_authorized_user_on_chef_endpoint_returns_403(self):
-        """authorized-user → GET /api/v1/batches/{id}/config returns 403."""
+    def test_authorized_user_without_batch_access_returns_403(self, monkeypatch):
+        """authorized-user without a batch access grant → GET /api/v1/batches/{id}/config returns 403."""
         from src.handlers.get_batch_config import handler  # noqa: PLC0415
+        from src.services.dynamodb import ItemNotFoundError  # noqa: PLC0415
 
-        event = _auth_event("authorized-user", path_params={"batchId": "batch-001"})
-        result = handler(event, MagicMock())
+        monkeypatch.setenv("DYNAMODB_BATCH_ACCESS_TABLE", "coquito-batch-access")
+
+        event = _auth_event("authorized-user", user_id="user-abc", path_params={"id": "batch-001"})
+
+        with patch("src.handlers.get_batch_config.get_item", side_effect=ItemNotFoundError("no grant")), \
+             patch("src.handlers.get_batch_config.batch_access_table_name", return_value="coquito-batch-access"):
+            result = handler(event, MagicMock())
 
         assert result["statusCode"] == 403
         body = result["body"] if isinstance(result["body"], dict) else json.loads(result["body"])

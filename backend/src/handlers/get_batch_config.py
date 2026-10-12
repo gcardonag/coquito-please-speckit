@@ -13,6 +13,7 @@ from src.models.variety import Variety
 from src.services.dynamodb import (
     ItemNotFoundError,
     get_item,
+    batch_access_table_name,
     batches_table_name,
     varieties_table_name,
 )
@@ -24,13 +25,21 @@ def _response(status_code: int, body: Any) -> dict[str, Any]:
 
 def handler(event: dict[str, Any], _context: Any) -> dict[str, Any]:
     """Lambda handler for GET /api/v1/batches/{id}."""
-    role = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {}).get("role", "")
-    # TODO: This needs to be tuned to allow access based on chef role or access being granted to the batch being requested (feature not yet developed)
+    authorizer_ctx = (event.get("requestContext") or {}).get("authorizer", {}).get("lambda", {})
+    role = authorizer_ctx.get("role", "")
+    user_id = authorizer_ctx.get("userId", "")
+
     if role != "chef" and role != "authorized-user":
         return _response(403, {"code": "FORBIDDEN", "message": "Access required"})
 
     batch_id: str = (event.get("pathParameters") or {}).get("id", "")
     cloudfront_base = os.environ.get("CLOUDFRONT_ASSETS_BASE_URL", "")
+
+    if role == "authorized-user":
+        try:
+            get_item(batch_access_table_name(), {"batchId": batch_id, "userId": user_id})
+        except ItemNotFoundError:
+            return _response(403, {"code": "FORBIDDEN", "message": "Access required"})
 
     try:
         batch_item = get_item(batches_table_name(), {"batchId": batch_id})
