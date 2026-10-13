@@ -14,6 +14,7 @@ def aws_env(monkeypatch):
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "test")
     monkeypatch.setenv("DYNAMODB_BATCHES_TABLE", "coquito-batches")
     monkeypatch.setenv("DYNAMODB_VARIETIES_TABLE", "coquito-varieties")
+    monkeypatch.setenv("DYNAMODB_BATCH_ACCESS_TABLE", "coquito-batch-access")
     monkeypatch.setenv("CLOUDFRONT_ASSETS_BASE_URL", "https://assets.example.com")
 
 
@@ -31,6 +32,18 @@ def ddb_tables():
             TableName="coquito-varieties",
             KeySchema=[{"AttributeName": "varietyId", "KeyType": "HASH"}],
             AttributeDefinitions=[{"AttributeName": "varietyId", "AttributeType": "S"}],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        batch_access_table = ddb.create_table(
+            TableName="coquito-batch-access",
+            KeySchema=[
+                {"AttributeName": "batchId", "KeyType": "HASH"},
+                {"AttributeName": "userId", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "batchId", "AttributeType": "S"},
+                {"AttributeName": "userId", "AttributeType": "S"},
+            ],
             BillingMode="PAY_PER_REQUEST",
         )
         batches_table.put_item(Item={
@@ -51,10 +64,11 @@ def ddb_tables():
             "bottleYieldMl": 750,
             "ingredients": [],
         })
-        yield {"batches": batches_table, "varieties": varieties_table}
+        yield {"batches": batches_table, "varieties": varieties_table, "batch_access": batch_access_table}
 
 
 _CHEF_CTX = {"requestContext": {"authorizer": {"lambda": {"role": "chef", "userId": "chef-001", "email": "chef@example.com"}}}}
+_AUTH_USER_CTX = {"requestContext": {"authorizer": {"lambda": {"role": "authorized-user", "userId": "user-001", "email": "user@example.com"}}}}
 
 
 class TestGetBatchConfig:
@@ -80,3 +94,23 @@ class TestGetBatchConfig:
         result = handler(event, {})
         assert result["statusCode"] == 404
         assert json.loads(result["body"])["code"] == "BATCH_NOT_FOUND"
+
+    def test_authorized_user_with_access_grant_gets_200(self, ddb_tables):
+        ddb_tables["batch_access"].put_item(Item={
+            "batchId": "b-001",
+            "userId": "user-001",
+            "email": "user@example.com",
+            "firstName": "Test",
+            "lastName": "User",
+            "grantedAt": "2026-01-01T00:00:00Z",
+        })
+        event = {"pathParameters": {"id": "b-001"}, **_AUTH_USER_CTX}
+        result = handler(event, {})
+        assert result["statusCode"] == 200
+        assert json.loads(result["body"])["batchId"] == "b-001"
+
+    def test_authorized_user_without_access_grant_gets_403(self, ddb_tables):
+        event = {"pathParameters": {"id": "b-001"}, **_AUTH_USER_CTX}
+        result = handler(event, {})
+        assert result["statusCode"] == 403
+        assert json.loads(result["body"])["code"] == "FORBIDDEN"

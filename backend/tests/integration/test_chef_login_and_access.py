@@ -3,7 +3,7 @@
 Tests:
   (a) Chef session (role='chef') → Chef-only handler returns 200
   (b) No session → 401 (authorizer denies)
-  (c) authorized-user session on Chef-only endpoint → 403
+  (c) authorized-user session without a batch access grant → 403
 
 Uses JWT fixtures and mocks the authorizer context injection.
 """
@@ -36,6 +36,8 @@ class TestChefLoginAndAccess:
         monkeypatch.setenv("DYNAMODB_BATCHES_TABLE", "coquito-batches")
         monkeypatch.setenv("DYNAMODB_VARIETIES_TABLE", "coquito-varieties")
         monkeypatch.setenv("DYNAMODB_REQUESTS_TABLE", "coquito-requests")
+        monkeypatch.setenv("DYNAMODB_BATCH_ACCESS_TABLE", "coquito-batch-access")
+
     def _invoke_batch_config(self, event: dict) -> dict:
         """Invoke get_batch_config handler directly."""
         from src.handlers.get_batch_config import handler  # noqa: PLC0415
@@ -61,10 +63,16 @@ class TestChefLoginAndAccess:
         result = self._invoke_batch_config(event)
         assert result["statusCode"] == 200
 
-    def test_authorized_user_on_chef_only_endpoint_returns_403(self):
-        """authorized-user role on Chef-only endpoint → 403."""
+    def test_authorized_user_without_batch_access_returns_403(self):
+        """authorized-user role without a batch access grant → 403."""
+        from src.handlers.get_batch_config import handler  # noqa: PLC0415
+        from src.services.dynamodb import ItemNotFoundError  # noqa: PLC0415
+
         event = _make_protected_event(role="authorized-user")
-        result = self._invoke_batch_config(event)
+        with patch(
+            "src.handlers.get_batch_config.get_item", side_effect=ItemNotFoundError("no grant")
+        ):
+            result = handler(event, MagicMock())
         assert result["statusCode"] == 403
         # Handler returns body as dict (not JSON string)
         body = result["body"] if isinstance(result["body"], dict) else json.loads(result["body"])

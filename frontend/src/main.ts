@@ -52,7 +52,7 @@ async function renderCookView(_params: Record<string, string>): Promise<void> {
 async function renderBatchManagement(_params: Record<string, string>): Promise<void> {
   const { mountBatchManagement } = await import('./pages/batch-management/index');
   appEl.innerHTML = '';
-  await mountBatchManagement(appEl);
+  await mountBatchManagement(appEl, currentUser);
 }
 
 async function renderVarietyManagement(_params: Record<string, string>): Promise<void> {

@@ -45,3 +45,25 @@ resource "aws_dynamodb_table" "requests" {
     enabled = true
   }
 }
+
+resource "aws_dynamodb_table" "batch_access" {
+  name                        = "coquito-batch-access-${var.environment}"
+  billing_mode                = "PAY_PER_REQUEST"
+  hash_key                    = "batchId"
+  range_key                   = "userId"
+  deletion_protection_enabled = true
+
+  attribute {
+    name = "batchId"
+    type = "S"
+  }
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  server_side_encryption {
+    enabled = true
+  }
+}

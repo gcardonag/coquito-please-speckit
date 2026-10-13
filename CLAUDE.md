@@ -24,6 +24,8 @@ Do not infer. Do not proceed.
 - DynamoDB — `coquito-batches-{environment}` (existing, unchanged schema); `coquito-requests-{environment}` (read-only, for active-request counts); `coquito-varieties-{environment}` (read-only, for variety selection) (004-chef-batch-management)
 - Python 3.12 (backend), TypeScript 5.x (frontend), HCL Terraform (infra) + boto3, AWS Lambda Powertools (backend); Vite 5.x, pnpm 9.x (frontend); hashicorp/aws ~> 6.39 (infra) (005-variety-management)
 - DynamoDB — `coquito-varieties-{environment}` (read + write, existing table, schema unchanged) (005-variety-management)
+- Python 3.12 (backend Lambda), TypeScript 5.x (frontend) + boto3, AWS Lambda Powertools (backend); Vite 5.x, pnpm 9.x (frontend); hashicorp/aws ~> 6.39 (infra) (006-batch-user-access)
+- DynamoDB (new `coquito-batch-access-{env}` table); Cognito User Pool (user identity, existing) (006-batch-user-access)
 
 ## Recent Changes
 - 001-coquito-request-app: Added TypeScript 5.x (frontend), Python 3.12 (backend Lambda) + Vite 5.x, pnpm 9.x, Prettier 3.x (frontend); boto3, AWS Lambda Powertools (backend)

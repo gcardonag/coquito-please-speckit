@@ -42,6 +42,7 @@ module "api" {
   dynamodb_requests_table        = module.storage.requests_table_name
   dynamodb_batches_table         = module.storage.batches_table_name
   dynamodb_varieties_table       = module.storage.varieties_table_name
+  dynamodb_batch_access_table    = module.storage.batch_access_table_name
   cloudfront_assets_base_url     = module.storage.cloudfront_assets_base_url
 }
 
