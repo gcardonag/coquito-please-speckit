@@ -63,12 +63,35 @@ jobs:
       - name: Run tests with coverage
         run: pytest --cov=src --cov-fail-under=80
 
+  handler-changes:
+    name: Detect backend handler changes
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    outputs:
+      handlers: ${{ steps.diff.outputs.handlers }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes under backend/src/handlers/
+        id: diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA...$HEAD_SHA" -- backend/src/handlers/; then
+            echo "handlers=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "handlers=true" >> "$GITHUB_OUTPUT"
+          fi
+
   backend-benchmarks:
     name: Backend — Performance Benchmarks
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'pull_request' &&
-      contains(toJson(github.event.pull_request.changed_files), 'backend/src/handlers/')
+    needs: handler-changes
+    if: needs.handler-changes.outputs.handlers == 'true'
     defaults:
       run:
         working-directory: backend
