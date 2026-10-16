@@ -5,6 +5,7 @@ Asserts wall-clock p95 latency under moto:
   - chef_grant_batch_access: ≤ 200 ms
 """
 import json
+import math
 from unittest.mock import MagicMock, patch
 
 import boto3
@@ -81,6 +82,12 @@ _USER_ATTRS = [
 ]
 
 
+def _p95(benchmark):
+    # pytest-benchmark has no q95 stat; derive it from the per-round timings.
+    rounds = sorted(benchmark.stats.stats.data)
+    return rounds[math.ceil(0.95 * len(rounds)) - 1]
+
+
 def test_chef_search_users_p95_under_1000ms(benchmark, tables):
     """p95 wall-clock for chef_search_users must be ≤ 1 000 ms under moto."""
     from src.handlers.chef_search_users import handler  # noqa: PLC0415
@@ -98,7 +105,7 @@ def test_chef_search_users_p95_under_1000ms(benchmark, tables):
     result = benchmark.pedantic(run, iterations=5, rounds=10)
     assert result["statusCode"] == 200
 
-    p95 = benchmark.stats.get("q95") or benchmark.stats["mean"] * 2
+    p95 = _p95(benchmark)
     assert p95 < 1.0, f"p95 latency {p95:.3f}s exceeds 1 000 ms budget"
 
 
@@ -128,5 +135,5 @@ def test_chef_grant_batch_access_p95_under_200ms(benchmark, tables):
     result = benchmark.pedantic(run, iterations=5, rounds=10)
     assert result["statusCode"] == 200
 
-    p95 = benchmark.stats.get("q95") or benchmark.stats["mean"] * 2
+    p95 = _p95(benchmark)
     assert p95 < 0.2, f"p95 latency {p95:.3f}s exceeds 200 ms budget"

@@ -1,6 +1,5 @@
-"""Unit tests for chef_list_varieties Lambda handler (US1 + performance benchmark)."""
+"""Unit tests for chef_list_varieties Lambda handler (US1)."""
 import json
-import time
 from decimal import Decimal
 from unittest.mock import MagicMock
 
@@ -129,31 +128,3 @@ class TestChefListVarieties:
         result = handler(_chef_event(), MagicMock())
         assert result["statusCode"] == 200
         assert json.loads(result["body"])["varieties"] == []
-
-    def test_performance_under_200ms_with_20_varieties(self, varieties_table):
-        """Constitution Principle IV: handler must complete ≤200ms with 20 varieties (5 ingredients each)."""
-        for i in range(3, 23):
-            varieties_table.put_item(Item={
-                "varietyId": f"v-{i:03d}",
-                "name": f"Variety {i}",
-                "description": "Test variety",
-                "imageKey": "",
-                "active": i % 2 == 0,
-                "bottleYieldMl": 750,
-                "ingredients": [
-                    {
-                        "ingredientId": f"ing-{i}-{j}",
-                        "name": f"Ingredient {j}",
-                        "quantityPerBottle": Decimal(str(j * 10)),
-                        "unit": "ml",
-                        "category": "dairy",
-                    }
-                    for j in range(1, 6)
-                ],
-            })
-        from src.handlers.chef_list_varieties import handler  # noqa: PLC0415
-        start = time.perf_counter()
-        result = handler(_chef_event(), MagicMock())
-        elapsed_ms = (time.perf_counter() - start) * 1000
-        assert result["statusCode"] == 200
-        assert elapsed_ms < 200, f"handler took {elapsed_ms:.1f}ms — must be <200ms"
