@@ -1,4 +1,5 @@
 import './styles/global.css';
+import './styles/components.css';
 import {
   getAndClearReturnUrl,
   getCodeVerifier,
@@ -8,6 +9,8 @@ import {
   verifyState,
 } from './services/auth';
 import { getMe, type CurrentUser } from './services/api';
+import { renderAppHeader, showChefNav } from './components/app-header/app-header';
+import { showBanner } from './components/app-banner/app-banner';
 
 // ---------------------------------------------------------------------------
 // Authenticated user — cached from GET /api/v1/me at startup
@@ -64,9 +67,10 @@ async function renderVarietyManagement(_params: Record<string, string>): Promise
 function renderNotFound(): void {
   appEl.innerHTML = `
     <div class="page-wrapper">
-      <div class="card" style="text-align:center; margin-top: 4rem;">
+      <div class="card not-found">
         <h1>¡Ay, bendito!</h1>
-        <p>That page doesn't exist. <a href="#/">Go back to order coquito</a>.</p>
+        <p>That page doesn't exist.</p>
+        <a class="not-found__link" href="#/">Go back to order coquito</a>
       </div>
     </div>
   `;
@@ -225,81 +229,20 @@ async function showHealthStatus(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Utility: show a dismissible notification banner
-// ---------------------------------------------------------------------------
-function showBanner(message: string, type: 'warn' | 'error' = 'warn'): void {
-  const existing = document.getElementById('app-banner');
-  if (existing) existing.remove();
-
-  const banner = document.createElement('div');
-  banner.id = 'app-banner';
-  banner.style.cssText = [
-    'position:fixed;top:0;left:0;right:0;z-index:9999;padding:0.75rem 1rem',
-    'display:flex;align-items:center;justify-content:space-between',
-    `background:${type === 'error' ? '#c0392b' : '#e67e22'};color:#fff;font-size:0.9rem`,
-  ].join(';');
-  banner.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#fff;font-size:1.25rem;cursor:pointer;padding:0 0.5rem">×</button>`;
-  document.body.prepend(banner);
-}
-
-// ---------------------------------------------------------------------------
-// Logout button: injected into the app root after initial render
-// ---------------------------------------------------------------------------
-function renderLogoutButton(): void {
-  if (document.getElementById('logout-btn')) return;
-
-  const btn = document.createElement('button');
-  btn.id = 'logout-btn';
-  btn.textContent = 'Log out';
-  btn.style.cssText =
-    'position:fixed;bottom:1rem;right:1rem;padding:0.5rem 1rem;cursor:pointer;z-index:9998';
-  btn.addEventListener('click', () => logout());
-  document.body.appendChild(btn);
-}
-
-// ---------------------------------------------------------------------------
 // Startup
 // ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-// Inject "Manage Batches" nav link for chef accounts
-// ---------------------------------------------------------------------------
-function renderChefNav(): void {
-  if (document.getElementById('chef-nav')) return;
-
-  const nav = document.createElement('nav');
-  nav.id = 'chef-nav';
-  nav.style.cssText = 'position:fixed;bottom:1rem;left:1rem;display:flex;gap:0.5rem;z-index:9998';
-
-  const linkStyle =
-    'padding:0.5rem 1rem;cursor:pointer;text-decoration:none;background:var(--color-coconut,#5c3d1e);color:#fff;border-radius:4px;font-size:0.875rem';
-
-  const batchesLink = document.createElement('a');
-  batchesLink.href = '#/batches';
-  batchesLink.textContent = 'Manage Batches';
-  batchesLink.style.cssText = linkStyle;
-
-  const varietiesLink = document.createElement('a');
-  varietiesLink.href = '#/varieties';
-  varietiesLink.textContent = 'Manage Varieties';
-  varietiesLink.style.cssText = linkStyle;
-
-  nav.appendChild(batchesLink);
-  nav.appendChild(varietiesLink);
-  document.body.appendChild(nav);
-}
-
 handleAuthCallback().then(async () => {
   showHealthStatus();
-  renderLogoutButton();
 
-  // Resolve current user for role-conditional UI; silently skip on error
+  // Paint the header immediately; chef links are added once the user's role is known
+  const header = renderAppHeader({ isChef: false, onLogout: () => logout() });
+
+  // Resolve current user for role-conditional UI; on error keep the header without chef links
   try {
     currentUser = await getMe();
-    if (currentUser?.role === 'chef') {
-      renderChefNav();
-    }
+    if (currentUser?.role === 'chef') showChefNav(header);
   } catch {
-    // not authenticated yet or /me unavailable — continue without chef nav
+    // not authenticated yet or /me unavailable — continue as a non-chef
   }
 
   // Initial render + listen for hash changes

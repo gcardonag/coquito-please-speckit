@@ -5,5 +5,14 @@ export default defineConfig({
     baseUrl: 'http://localhost:5173',
     supportFile: 'cypress/support/e2e.ts',
     specPattern: 'cypress/e2e/**/*.cy.ts',
+    setupNodeEvents(on) {
+      // Print a message to the terminal running Cypress (used for headless CI diagnostics).
+      on('task', {
+        log(message: string) {
+          console.log(message);
+          return null;
+        },
+      });
+    },
   },
 });

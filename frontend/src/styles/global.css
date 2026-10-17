@@ -41,11 +41,13 @@ h6 {
   color: var(--color-coconut-dark);
 }
 
+/* Fluid headings: scale with the viewport between the mobile and desktop type tokens.
+   h1 is --font-size-xl (2rem) up to ~640px and reaches --font-size-2xl (2.5rem) by 1000px. */
 h1 {
-  font-size: var(--font-size-2xl);
+  font-size: clamp(var(--font-size-xl), 1.25rem + 2vw, var(--font-size-2xl));
 }
 h2 {
-  font-size: var(--font-size-xl);
+  font-size: clamp(var(--font-size-lg), 1rem + 1.5vw, var(--font-size-xl));
 }
 h3 {
   font-size: var(--font-size-lg);
@@ -123,7 +125,7 @@ button:disabled {
   width: 100%;
   max-width: var(--max-width-content);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
+  padding: var(--space-6) var(--gutter);
 }
 
 .card {
@@ -132,6 +134,53 @@ button:disabled {
   border-radius: var(--radius-lg);
   padding: var(--space-6);
   box-shadow: var(--shadow-sm);
+}
+
+/* App banner — page-level notice shown above the header, in normal flow so it never
+   covers content. Pair .app-banner with one of the --warn / --error modifiers. */
+.app-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--gutter);
+  border-bottom: var(--border-width) solid currentColor;
+  font-size: var(--font-size-sm);
+}
+
+.app-banner--warn {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.app-banner--error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.app-banner__close {
+  flex-shrink: 0;
+  min-width: var(--touch-target-min);
+  min-height: var(--touch-target-min);
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+}
+
+/* 404 — centred card (use together with .card) and a full-size tap target for its link */
+.not-found {
+  max-width: var(--max-width-content);
+  margin: var(--space-16) auto 0;
+  text-align: center;
+}
+
+.not-found__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch-target-min);
 }
 
 /* Utility */

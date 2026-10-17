@@ -47,7 +47,7 @@ function renderPage(container: HTMLElement, requestId: string, req: RequestRespo
   container.appendChild(hero);
 
   const wrap = document.createElement('div');
-  wrap.className = 'page-wrapper';
+  wrap.className = 'page-wrapper manage-wrapper';
 
   if (!req.editable) {
     wrap.appendChild(buildLockedBanner(req));
@@ -214,10 +214,10 @@ function buildEditForm(
   timeInput.value = req.pickupTime;
   timeInput.dataset.cy = 'pickup-time';
 
-  const dateTimeRow = document.createElement('div');
-  dateTimeRow.className = 'date-time-row';
-  dateTimeRow.appendChild(dateField);
-  dateTimeRow.appendChild(timeField);
+  const dateTimePair = document.createElement('div');
+  dateTimePair.className = 'field-pair';
+  dateTimePair.appendChild(dateField);
+  dateTimePair.appendChild(timeField);
 
   // Location
   const locationField = createLabeledInput({
@@ -255,7 +255,7 @@ function buildEditForm(
   editActions.appendChild(saveBtn);
   editActions.appendChild(discardBtn);
 
-  form.appendChild(dateTimeRow);
+  form.appendChild(dateTimePair);
   form.appendChild(locationField);
   form.appendChild(formError);
   form.appendChild(editActions);
@@ -409,7 +409,7 @@ function renderLoading(): string {
 
 function renderNotFound(): string {
   return `
-    <div class="page-wrapper">
+    <div class="page-wrapper manage-wrapper">
       <div class="not-found-card" data-cy="not-found-message">
         <div class="not-found-card__icon">🥺</div>
         <h2 class="not-found-card__heading">Order not found</h2>
@@ -423,8 +423,8 @@ function renderNotFound(): string {
 
 function renderLoadError(): string {
   return `
-    <div class="page-wrapper">
-      <div class="card form-error" role="alert" style="max-width:560px;margin:2rem auto;">
+    <div class="page-wrapper manage-wrapper">
+      <div class="card form-error manage-error-card" role="alert">
         ¡Ay, algo pasó! We couldn't load your order. Please try again later.
       </div>
     </div>`;

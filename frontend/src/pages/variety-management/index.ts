@@ -1,4 +1,5 @@
 import './variety-management.css';
+import { revealDetail } from '../../components/reveal-detail';
 import {
   ApiRequestError,
   type ChefIngredientDetail,
@@ -82,7 +83,10 @@ function renderList(container: HTMLElement): void {
     li.appendChild(info);
     li.appendChild(statusBadge(variety.active));
 
-    const openDetail = () => renderDetail(container, variety);
+    const openDetail = () => {
+      renderDetail(container, variety);
+      revealDetail(container.querySelector<HTMLElement>('[data-testid="variety-detail"]'));
+    };
     li.addEventListener('click', openDetail);
     li.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') openDetail();
@@ -719,7 +723,10 @@ export async function mountVarietyManagement(container: HTMLElement): Promise<vo
 
   container
     .querySelector<HTMLButtonElement>('[data-testid="new-variety-btn"]')!
-    .addEventListener('click', () => showCreateForm(container));
+    .addEventListener('click', () => {
+      showCreateForm(container);
+      revealDetail(container.querySelector<HTMLElement>('[data-testid="variety-detail"]'));
+    });
 
   const listRegion = container.querySelector<HTMLElement>('[data-testid="variety-list"]')!;
   listRegion.textContent = 'Loading varieties…';

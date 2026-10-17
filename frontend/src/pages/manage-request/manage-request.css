@@ -1,8 +1,10 @@
-/* ---- Manage Request page ---- */
+/* ---- Manage Request page ----
+   Mobile-first. Cards share the customer-form width (--max-width-form); from 64em the
+   summary lays its rows out in two columns. Action rows wrap rather than squeeze labels. */
 
 .manage-hero {
-  background: linear-gradient(135deg, var(--color-coconut) 0%, #5a3a1a 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--color-coconut) 0%, var(--color-coconut-dark) 100%);
+  color: var(--color-text-on-coconut);
   padding: var(--space-8) var(--space-4);
   text-align: center;
 }
@@ -21,15 +23,29 @@
   margin: 0 0 var(--space-2);
 }
 
+/* Widen the shared page wrapper from --max-width-content to the customer-form width. */
+.page-wrapper.manage-wrapper {
+  max-width: var(--max-width-form);
+}
+
+/* ---- Cards: summary, edit form, locked, cancelled and not-found share one width ---- */
+
+.summary-card,
+.edit-form-card,
+.locked-banner,
+.cancelled-card,
+.not-found-card {
+  max-width: var(--max-width-form);
+}
+
 /* ---- Summary card ---- */
 
 .summary-card {
-  background: #fff;
-  border-radius: 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: var(--space-6);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   margin: var(--space-6) auto;
-  max-width: 560px;
 }
 
 .summary-card__title {
@@ -39,12 +55,13 @@
   margin: 0 0 var(--space-4);
 }
 
+/* Mobile: label above value so long values (e.g. a location) wrap beneath the label. */
 .summary-row {
   display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
+  flex-direction: column;
+  gap: var(--space-1);
   padding: var(--space-2) 0;
-  border-bottom: 1px solid #f0ede8;
+  border-bottom: var(--border-width) solid var(--color-cream-dark);
   font-size: 0.9375rem;
 }
 
@@ -53,73 +70,110 @@
 }
 
 .summary-row__label {
-  color: #6b5a4e;
+  color: var(--color-text-secondary);
   font-weight: 500;
 }
 
 .summary-row__value {
-  text-align: right;
-  color: #1a1208;
+  text-align: left;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
 }
 
-/* ---- Action buttons ---- */
+@media (min-width: 40em) {
+  .summary-row {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
 
-.manage-actions {
+  .summary-row__value {
+    text-align: right;
+  }
+}
+
+@media (min-width: 64em) {
+  .summary-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--space-8);
+  }
+
+  .summary-card__title,
+  .summary-card .manage-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---- Action rows: wrap instead of compressing button labels ---- */
+
+.manage-actions,
+.edit-actions,
+.cancel-dialog__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
+}
+
+.manage-actions,
+.edit-actions {
   margin-top: var(--space-5);
 }
 
+.manage-actions > button,
+.edit-actions > button,
+.cancel-dialog__actions > button {
+  flex: 1 1 auto;
+  white-space: nowrap;
+}
+
 .btn-edit {
-  flex: 1;
   background: var(--color-coconut);
-  color: #fff;
+  color: var(--color-text-on-coconut);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: var(--touch-target);
+  min-height: var(--touch-target-min);
   transition: background 0.15s;
 }
 
 .btn-edit:hover {
-  background: #5a3a1a;
+  background: var(--color-coconut-dark);
 }
 
 .btn-cancel-request {
-  flex: 1;
   background: transparent;
-  color: #c0392b;
-  border: 2px solid #c0392b;
-  border-radius: 0.5rem;
+  color: var(--color-error);
+  border: var(--border-width-thick) solid var(--color-error);
+  border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: var(--touch-target);
+  min-height: var(--touch-target-min);
   transition:
     background 0.15s,
     color 0.15s;
 }
 
 .btn-cancel-request:hover {
-  background: #c0392b;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--color-surface);
 }
 
 /* ---- Locked banner ---- */
 
 .locked-banner {
-  background: #fff8ee;
-  border: 1px solid #f5c87a;
-  border-radius: 0.75rem;
+  background: var(--color-warning-bg);
+  border: var(--border-width) solid var(--color-warning);
+  border-radius: var(--radius-lg);
   padding: var(--space-4) var(--space-5);
   margin: var(--space-4) auto;
-  max-width: 560px;
   text-align: center;
-  color: #6b4e17;
+  color: var(--color-warning);
 }
 
 .locked-banner__icon {
@@ -142,12 +196,11 @@
 /* ---- Edit form ---- */
 
 .edit-form-card {
-  background: #fff;
-  border-radius: 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: var(--space-6);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   margin: var(--space-6) auto;
-  max-width: 560px;
 }
 
 .edit-form-card__title {
@@ -157,28 +210,21 @@
   margin: 0 0 var(--space-4);
 }
 
-.edit-actions {
-  display: flex;
-  gap: var(--space-3);
-  margin-top: var(--space-5);
-}
-
 .btn-save {
-  flex: 1;
   background: var(--color-green);
-  color: #fff;
+  color: var(--color-surface);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: var(--touch-target);
+  min-height: var(--touch-target-min);
   transition: background 0.15s;
 }
 
 .btn-save:hover {
-  background: #1a6e3a;
+  background: var(--color-green-dark);
 }
 
 .btn-save:disabled {
@@ -187,26 +233,29 @@
 }
 
 .btn-discard {
-  flex: 1;
   background: transparent;
   color: var(--color-coconut);
-  border: 2px solid var(--color-coconut);
-  border-radius: 0.5rem;
+  border: var(--border-width-thick) solid var(--color-coconut);
+  border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: var(--touch-target);
+  min-height: var(--touch-target-min);
 }
 
-/* ---- Cancel dialog ---- */
+/* ---- Cancel dialog: at most 25rem, keeping a --space-4 margin on each side on phones ----
+   margin: auto restores the UA centring of modal dialogs that the global reset removes. */
 
 .cancel-dialog {
+  margin: auto;
   border: none;
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   padding: var(--space-6);
-  max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  /* % not vw: vw includes a classic scrollbar, which would eat the side margin */
+  width: min(25rem, calc(100% - 2 * var(--space-4)));
+  max-width: none;
+  box-shadow: var(--shadow-lg);
   text-align: center;
 }
 
@@ -228,51 +277,43 @@
 
 .cancel-dialog__body {
   font-size: 0.9375rem;
-  color: #4a3728;
+  color: var(--color-text-secondary);
   margin: 0 0 var(--space-5);
   line-height: 1.5;
 }
 
-.cancel-dialog__actions {
-  display: flex;
-  gap: var(--space-3);
-}
-
 .btn-confirm-cancel {
-  flex: 1;
-  background: #c0392b;
-  color: #fff;
+  background: var(--color-error);
+  color: var(--color-surface);
   border: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   padding: var(--space-3);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: var(--touch-target);
+  min-height: var(--touch-target-min);
 }
 
 .btn-dismiss-cancel {
-  flex: 1;
   background: transparent;
   color: var(--color-coconut);
-  border: 2px solid var(--color-coconut);
-  border-radius: 0.5rem;
+  border: var(--border-width-thick) solid var(--color-coconut);
+  border-radius: var(--radius-md);
   padding: var(--space-3);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  min-height: var(--touch-target);
+  min-height: var(--touch-target-min);
 }
 
 /* ---- Cancelled confirmation ---- */
 
 .cancelled-card {
-  background: #fff;
-  border-radius: 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: var(--space-8);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   margin: var(--space-6) auto;
-  max-width: 560px;
   text-align: center;
 }
 
@@ -289,7 +330,7 @@
 }
 
 .cancelled-card__text {
-  color: #4a3728;
+  color: var(--color-text-secondary);
   line-height: 1.6;
   margin: 0 0 var(--space-5);
 }
@@ -297,9 +338,9 @@
 .cancelled-card__link {
   display: inline-block;
   background: var(--color-coconut);
-  color: #fff;
+  color: var(--color-text-on-coconut);
   text-decoration: none;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-6);
   font-weight: 600;
   font-size: 1rem;
@@ -308,12 +349,11 @@
 /* ---- Not found / error ---- */
 
 .not-found-card {
-  background: #fff;
-  border-radius: 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   padding: var(--space-8);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   margin: var(--space-6) auto;
-  max-width: 560px;
   text-align: center;
 }
 
@@ -329,25 +369,20 @@
   margin: 0 0 var(--space-3);
 }
 
+/* Load-error card (formerly inline styles in renderLoadError). */
+.manage-error-card {
+  max-width: var(--max-width-content);
+  margin: var(--space-8) auto;
+}
+
 /* ---- Inline form error ---- */
 
 .manage-form-error {
-  background: #fee;
-  border: 1px solid #e99;
-  border-radius: 0.5rem;
+  background: var(--color-error-bg);
+  border: var(--border-width) solid var(--color-error);
+  border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
-  color: #c0392b;
+  color: var(--color-error);
   font-size: 0.9375rem;
   margin-top: var(--space-3);
-}
-
-/* ---- Date-time row (reuse from request-form) ---- */
-
-.date-time-row {
-  display: flex;
-  gap: var(--space-3);
-}
-
-.date-time-row > * {
-  flex: 1;
 }

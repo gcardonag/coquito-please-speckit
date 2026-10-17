@@ -1,0 +1,152 @@
+/* =============================================================
+   Shared Component Styles — loaded eagerly after global.css
+   Form fields, inputs, field pairs and button variants used by
+   more than one page. Page CSS must not redefine these rules.
+   ============================================================= */
+
+/* ---- Form fields ---- */
+.form-field {
+  margin-bottom: var(--space-6);
+}
+
+.form-field label,
+.form-field legend {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.form-field fieldset {
+  border: none;
+  padding: 0;
+}
+
+.form-field fieldset legend {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-3);
+  float: none;
+  width: 100%;
+}
+
+/* ---- Text inputs ---- */
+input[type='text'],
+input[type='email'],
+input[type='number'],
+input[type='date'],
+input[type='time'] {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thick) solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast);
+  min-height: var(--touch-target-min);
+}
+
+input:focus {
+  border-color: var(--color-coconut);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(92, 61, 30, 0.2);
+}
+
+input.input--error {
+  border-color: var(--color-error);
+}
+
+.field-error {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+}
+
+/* ---- Form-level error ---- */
+.form-error {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-base);
+}
+
+/* ---- Field pair: two related fields, stacked on mobile, side by side from tablet ----
+   align-items: start keeps both inputs level when only one shows an error.
+   No row gap: each .form-field already carries its own bottom margin. */
+.field-pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 var(--space-4);
+  align-items: start;
+}
+
+@media (min-width: 40em) {
+  .field-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---- Buttons: shared base plus primary / secondary variants ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--touch-target-min);
+  padding: var(--space-3) var(--space-6);
+  border: var(--border-width-thick) solid transparent;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family-ui);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.btn:focus-visible {
+  outline: var(--border-width-thick) solid var(--color-coconut);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* :focus is listed so the global a:focus colour cannot override a.btn text */
+.btn--primary,
+.btn--primary:focus {
+  background-color: var(--color-coconut);
+  border-color: var(--color-coconut);
+  color: var(--color-text-on-dark);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-color: var(--color-coconut-dark);
+  border-color: var(--color-coconut-dark);
+  color: var(--color-text-on-dark);
+}
+
+.btn--secondary,
+.btn--secondary:focus {
+  background-color: var(--color-surface);
+  border-color: var(--color-coconut);
+  color: var(--color-coconut);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background-color: var(--color-cream-dark);
+  color: var(--color-coconut-dark);
+}

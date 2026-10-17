@@ -107,11 +107,17 @@ function renderForm(container: HTMLElement, batch: BatchConfig): void {
     placeholder: 'e.g. maria@example.com',
   });
 
+  // Name + email pair: stacked on mobile, side by side from tablet (.field-pair in components.css)
+  const contactPair = document.createElement('div');
+  contactPair.className = 'field-pair';
+  contactPair.appendChild(nameField);
+  contactPair.appendChild(emailField);
+
   const varietySelector = createVarietySelector(batch.availableVarieties);
 
-  // Date + time row
-  const dateTimeRow = document.createElement('div');
-  dateTimeRow.className = 'date-time-row';
+  // Date + time pair
+  const dateTimePair = document.createElement('div');
+  dateTimePair.className = 'field-pair';
 
   const dateField = createLabeledInput({
     id: 'pickup-date',
@@ -130,8 +136,8 @@ function renderForm(container: HTMLElement, batch: BatchConfig): void {
     required: true,
   });
 
-  dateTimeRow.appendChild(dateField);
-  dateTimeRow.appendChild(timeField);
+  dateTimePair.appendChild(dateField);
+  dateTimePair.appendChild(timeField);
 
   const locationField = createLabeledInput({
     id: 'exchange-location',
@@ -157,10 +163,9 @@ function renderForm(container: HTMLElement, batch: BatchConfig): void {
   submitBtn.dataset.cy = 'submit-button';
   submitBtn.textContent = '🥥 Request my coquito';
 
-  form.appendChild(nameField);
-  form.appendChild(emailField);
+  form.appendChild(contactPair);
   form.appendChild(varietySelector);
-  form.appendChild(dateTimeRow);
+  form.appendChild(dateTimePair);
   form.appendChild(locationField);
   form.appendChild(bottlePref);
   form.appendChild(costToggle);

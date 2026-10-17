@@ -26,6 +26,7 @@ Do not infer. Do not proceed.
 - DynamoDB — `coquito-varieties-{environment}` (read + write, existing table, schema unchanged) (005-variety-management)
 - Python 3.12 (backend Lambda), TypeScript 5.x (frontend) + boto3, AWS Lambda Powertools (backend); Vite 5.x, pnpm 9.x (frontend); hashicorp/aws ~> 6.39 (infra) (006-batch-user-access)
 - DynamoDB (new `coquito-batch-access-{env}` table); Cognito User Pool (user identity, existing) (006-batch-user-access)
+- TypeScript 5.x, CSS (frontend only) + Vite, pnpm 9.x, Prettier 3.x. No new dependencies. (007-responsive-layout)
 
 ## Recent Changes
 - 001-coquito-request-app: Added TypeScript 5.x (frontend), Python 3.12 (backend Lambda) + Vite 5.x, pnpm 9.x, Prettier 3.x (frontend); boto3, AWS Lambda Powertools (backend)

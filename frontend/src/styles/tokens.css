@@ -17,7 +17,7 @@
   /* High-contrast text */
   --color-text-primary: #1a1a1a;
   --color-text-secondary: #4a4a4a;
-  --color-text-muted: #777777;
+  --color-text-muted: #666666; /* ≥ 5:1 on cream and white (WCAG AA) */
   --color-text-on-dark: #fdf6e3;
   --color-text-on-coconut: #fdf6e3;
 
@@ -90,6 +90,21 @@
   --touch-target-min: 44px;
 
   /* ---- Layout ---- */
-  --max-width-content: 640px;
-  --max-width-cook: 480px;
+  --max-width-content: 640px; /* narrow centred cards: confirmation, dialogs, 404 */
+  --max-width-form: 60rem; /* 960px — customer forms: request form, manage request */
+  --max-width-wide: 75rem; /* 1200px — chef pages, cook view, app header */
+  --gutter: var(--space-4); /* horizontal page padding; widens from tablet */
+}
+
+/* ---- Breakpoints ----
+   Custom properties cannot be used inside @media conditions, so the
+   breakpoints are documented here and written literally in each query.
+   Styles are mobile-first; em units make the queries follow browser zoom.
+     tablet:  @media (min-width: 40em)  — 640px and wider
+     desktop: @media (min-width: 64em)  — 1024px and wider
+*/
+@media (min-width: 40em) {
+  :root {
+    --gutter: var(--space-6);
+  }
 }
