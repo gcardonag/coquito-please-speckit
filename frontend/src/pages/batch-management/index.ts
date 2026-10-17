@@ -1,4 +1,5 @@
 import './batch-management.css';
+import { revealDetail } from '../../components/reveal-detail';
 import {
   ApiRequestError,
   type BatchAccessUser,
@@ -81,7 +82,10 @@ function renderList(container: HTMLElement): void {
     li.appendChild(info);
     li.appendChild(statusBadge(batch.status));
 
-    const openDetail = () => renderDetail(container, batch);
+    const openDetail = async () => {
+      await renderDetail(container, batch);
+      revealDetail(container.querySelector<HTMLElement>('[data-testid="batch-detail"]'));
+    };
     li.addEventListener('click', openDetail);
     li.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') openDetail();
@@ -211,7 +215,10 @@ function renderReadOnlyFields(
 }
 
 function renderEditForm(batch: BatchSummary, varieties: VarietySummary[]): HTMLFormElement {
-  const form = el<HTMLFormElement>('form', { 'data-testid': 'edit-batch-form' });
+  const form = el<HTMLFormElement>('form', {
+    'data-testid': 'edit-batch-form',
+    class: 'batch-form',
+  });
 
   // Name field
   const nameWrap = el('div', { class: 'batch-form__field' });
@@ -757,9 +764,13 @@ function renderSearchSection(body: HTMLElement, batch: BatchSummary): void {
     if (e.key === 'Enter') runSearch(input.value.trim(), resultsEl, body, batch);
   });
 
+  // Input + button share a row (wrapping on narrow panels); results sit below.
+  const row = el('div', { class: 'access-search__row' });
+  row.appendChild(input);
+  row.appendChild(btn);
+
   section.appendChild(label);
-  section.appendChild(input);
-  section.appendChild(btn);
+  section.appendChild(row);
   section.appendChild(resultsEl);
   body.appendChild(section);
 }
@@ -1139,7 +1150,10 @@ export async function mountBatchManagement(
 
   container
     .querySelector<HTMLButtonElement>('[data-testid="new-batch-btn"]')!
-    .addEventListener('click', () => showCreateForm(container));
+    .addEventListener('click', async () => {
+      await showCreateForm(container);
+      revealDetail(container.querySelector<HTMLElement>('[data-testid="batch-detail"]'));
+    });
 
   const listRegion = container.querySelector<HTMLElement>('[data-testid="batch-list"]')!;
   listRegion.textContent = 'Loading batches…';

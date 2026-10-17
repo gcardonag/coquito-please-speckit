@@ -1,0 +1,86 @@
+/* =============================================================
+   App header — brand, chef links (chefs only) and Log out.
+   In normal flow (never fixed/sticky) so it cannot cover content.
+   Mobile: brand + Log out on row 1, chef nav wraps to row 2.
+   Tablet/desktop: everything on one row, capped and centred.
+   ============================================================= */
+
+.app-header {
+  background-color: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.app-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  max-width: var(--max-width-wide);
+  margin: 0 auto;
+  padding: var(--space-2) var(--gutter);
+}
+
+/* margin-right:auto pushes the nav and Log out to the end of the row */
+.app-header__brand,
+.app-header__brand:focus {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target-min);
+  margin-right: auto;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-coconut-dark);
+  text-decoration: none;
+}
+
+.app-header__brand:hover {
+  color: var(--color-coconut);
+}
+
+.app-header__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  /* mobile: own full-width row below brand + Log out */
+  order: 3;
+  flex-basis: 100%;
+}
+
+.app-header__link,
+.app-header__link:focus {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target-min);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-coconut);
+  text-decoration: none;
+}
+
+.app-header__link:hover {
+  background-color: var(--color-cream);
+  color: var(--color-coconut-dark);
+}
+
+/* Current page: bold and underlined so it is distinguishable without relying on colour */
+.app-header__link[aria-current='page'] {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-coconut-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.app-header__logout {
+  font-size: var(--font-size-sm);
+  padding-block: var(--space-2);
+}
+
+@media (min-width: 40em) {
+  .app-header__nav {
+    order: 0;
+    flex-basis: auto;
+  }
+}

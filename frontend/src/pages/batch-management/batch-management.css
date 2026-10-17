@@ -1,7 +1,7 @@
 .batch-management {
-  max-width: var(--max-width-cook);
+  max-width: var(--max-width-wide);
   margin: 0 auto;
-  padding: var(--space-6) var(--space-4);
+  padding: var(--space-6) var(--gutter);
 }
 
 .batch-management__header {
@@ -290,6 +290,13 @@
   gap: var(--space-2);
 }
 
+/* Search input + button: stacked below desktop, one wrapping row from 64em */
+.access-search__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .access-results {
   min-height: var(--space-6);
 }
@@ -363,12 +370,6 @@
   margin-bottom: var(--space-3);
 }
 
-/* ---- Access denied ---- */
-.batch-access-denied {
-  text-align: center;
-  padding: var(--space-12) var(--space-4);
-}
-
 /* ---- General error message ---- */
 .batch-error {
   background: var(--color-error-bg);
@@ -378,4 +379,50 @@
   padding: var(--space-3) var(--space-4);
   margin-bottom: var(--space-4);
   font-size: var(--font-size-sm);
+}
+
+/* ---- Desktop: list and detail side by side ----
+   Grid keeps DOM order (header, list, detail) so focus order matches visual order. */
+@media (min-width: 64em) {
+  .batch-management {
+    display: grid;
+    grid-template-columns: minmax(18rem, 2fr) 3fr;
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .batch-management__header {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+
+  /* The detail panel stays in view while the list scrolls, scrolling itself if taller. */
+  .batch-management > [data-testid='batch-detail'] {
+    position: sticky;
+    top: var(--space-4);
+    max-height: calc(100dvh - 2 * var(--space-4));
+    overflow: auto;
+  }
+
+  .batch-form__variety-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  }
+
+  .access-search__row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .access-search__row .batch-form__input {
+    flex: 1 1 16rem;
+    width: auto;
+  }
+
+  /* Wrap long names/emails instead of truncating them. */
+  .access-user-row__info,
+  .access-user-row__name {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
 }

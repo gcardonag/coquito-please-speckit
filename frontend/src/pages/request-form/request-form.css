@@ -1,15 +1,12 @@
-/* Request Form Page Styles */
-
-.request-form-page {
-  min-height: 100dvh;
-  background: var(--color-cream);
-}
+/* Request Form Page Styles
+   Mobile-first: everything stacks below 40em; from 40em toggle options sit in a row and
+   variety images grow. Field pairs (.field-pair) are laid out in styles/components.css. */
 
 /* Hero section */
 .form-hero {
   background: linear-gradient(135deg, var(--color-coconut) 0%, var(--color-coconut-dark) 100%);
   color: var(--color-text-on-dark);
-  padding: var(--space-10) var(--space-4) var(--space-8);
+  padding: var(--space-10) var(--gutter) var(--space-8);
   text-align: center;
 }
 
@@ -22,8 +19,8 @@
 }
 
 .form-hero__heading {
+  /* No font-size here: the fluid global h1 clamp keeps it to <= 2 lines at 375px. */
   font-family: var(--font-family-base);
-  font-size: var(--font-size-2xl);
   color: var(--color-cream);
   margin-bottom: var(--space-3);
 }
@@ -50,70 +47,9 @@
 
 /* Form card */
 .request-form-card {
-  max-width: var(--max-width-content);
+  max-width: var(--max-width-form);
   margin: var(--space-8) auto;
-  padding: var(--space-4);
-}
-
-/* Form fields */
-.form-field {
-  margin-bottom: var(--space-6);
-}
-
-.form-field label,
-.form-field legend {
-  display: block;
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-base);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-2);
-}
-
-.form-field fieldset {
-  border: none;
-  padding: 0;
-}
-
-.form-field fieldset legend {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-3);
-  float: none;
-  width: 100%;
-}
-
-input[type='text'],
-input[type='email'],
-input[type='number'],
-input[type='date'],
-input[type='time'] {
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
-  border: var(--border-width-thick) solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-base);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  transition: border-color var(--transition-fast);
-  min-height: var(--touch-target-min);
-}
-
-input:focus {
-  border-color: var(--color-coconut);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(92, 61, 30, 0.2);
-}
-
-input.input--error {
-  border-color: var(--color-error);
-}
-
-.field-error {
-  display: block;
-  margin-top: var(--space-1);
-  color: var(--color-error);
-  font-size: var(--font-size-sm);
+  padding: var(--gutter);
 }
 
 /* Variety grid */
@@ -208,18 +144,24 @@ input.input--error {
   flex-shrink: 0;
 }
 
+@media (min-width: 40em) {
+  .toggle-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .variety-card__image {
+    width: 96px;
+    height: 96px;
+  }
+}
+
 .volume-input {
   margin-top: var(--space-4);
   padding: var(--space-4);
   background: var(--color-cream-dark);
   border-radius: var(--radius-md);
-}
-
-/* Date+time row */
-.date-time-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
 }
 
 /* Submit button */
@@ -237,17 +179,6 @@ input.input--error {
 
 .submit-btn:hover:not(:disabled) {
   background: var(--color-coconut-dark);
-}
-
-/* Form-level error */
-.form-error {
-  background: var(--color-error-bg);
-  color: var(--color-error);
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
-  margin-bottom: var(--space-4);
-  font-size: var(--font-size-base);
 }
 
 /* Confirmation card */
