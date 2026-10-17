@@ -39,12 +39,15 @@ function selectFirstBatch(): void {
   cy.get('[data-testid=edit-batch-form]').should('be.visible');
 }
 
+/** scrollIntoView can settle a fraction of a pixel past the edge (e.g. -0.03125 on Linux). */
+const SUBPIXEL_TOLERANCE_PX = 1;
+
 /** Assert the top edge of the first match of `sel` lies inside the visible viewport. */
 function assertTopInViewport(sel: string): void {
   cy.window().then((win) => {
     cy.get(sel).should(($el) => {
       const top = $el[0].getBoundingClientRect().top;
-      expect(top, `${sel} top`).to.be.at.least(0);
+      expect(top, `${sel} top`).to.be.at.least(-SUBPIXEL_TOLERANCE_PX);
       expect(top, `${sel} top`).to.be.below(win.innerHeight);
     });
   });
@@ -55,8 +58,8 @@ function assertFullyInViewport(sel: string): void {
   cy.window().then((win) => {
     cy.get(sel).should(($el) => {
       const r = $el[0].getBoundingClientRect();
-      expect(r.top, `${sel} top`).to.be.at.least(0);
-      expect(r.left, `${sel} left`).to.be.at.least(0);
+      expect(r.top, `${sel} top`).to.be.at.least(-SUBPIXEL_TOLERANCE_PX);
+      expect(r.left, `${sel} left`).to.be.at.least(-SUBPIXEL_TOLERANCE_PX);
       expect(r.bottom, `${sel} bottom`).to.be.at.most(win.innerHeight);
       expect(r.right, `${sel} right`).to.be.at.most(win.innerWidth);
     });

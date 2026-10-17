@@ -156,6 +156,21 @@ describe('007 US4 — Cook view: mobile layout', () => {
   });
 });
 
+describe('007 US4 — Cook view: narrow phone (320px)', () => {
+  beforeEach(() => {
+    cy.viewport(320, 640);
+    visitCookView();
+  });
+
+  it('lets keyboard users reach the totals table when it scrolls sideways', () => {
+    cy.get(`${TOTALS} [role="region"][tabindex="0"]`)
+      .should('have.attr', 'aria-labelledby')
+      .then((id) => cy.get(`#${id}`).should('have.text', 'Total Shopping List'));
+    cy.assertNoHorizontalOverflow();
+    cy.checkA11yAtViewport();
+  });
+});
+
 describe('007 US4 — Cook view: every viewport', () => {
   (Object.keys(VIEWPORTS) as Array<keyof typeof VIEWPORTS>).forEach((name) => {
     context(`at ${name}`, () => {

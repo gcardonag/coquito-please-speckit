@@ -90,12 +90,12 @@ Cypress.Commands.add('assertMinTouchTarget', (sel: string) => {
 Cypress.Commands.add('checkA11yAtViewport', () => {
   cy.injectAxe();
   cy.checkA11y(undefined, { runOnly: { type: 'tag', values: A11Y_TAGS } }, (violations) => {
-    // Log each violation with its offending selectors so failures are diagnosable.
+    // Log each violation with its offending selectors, in the runner and in the terminal
+    // (via the `log` task) so headless CI failures are diagnosable from the job log.
     violations.forEach((v) => {
-      Cypress.log({
-        name: 'a11y',
-        message: `${v.id} (${v.impact}): ${v.help} — ${v.nodes.map((n) => n.target).join(', ')}`,
-      });
+      const message = `${v.id} (${v.impact}): ${v.help} — ${v.nodes.map((n) => n.target).join(', ')}`;
+      Cypress.log({ name: 'a11y', message });
+      cy.task('log', `a11y violation: ${message}`);
     });
   });
 });

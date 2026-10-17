@@ -107,8 +107,17 @@ function buildTotalsSection(
 
   const heading = document.createElement('h2');
   heading.className = 'totals-section__heading';
+  heading.id = 'totals-heading';
   heading.textContent = 'Total Shopping List';
   section.appendChild(heading);
+
+  // On narrow screens the table scrolls sideways; a focusable, labelled region lets
+  // keyboard users scroll it too (WCAG 2.1.1).
+  const scrollRegion = document.createElement('div');
+  scrollRegion.className = 'totals-scroll';
+  scrollRegion.setAttribute('role', 'region');
+  scrollRegion.setAttribute('aria-labelledby', heading.id);
+  scrollRegion.tabIndex = 0;
 
   const table = document.createElement('table');
   table.className = 'totals-table';
@@ -134,7 +143,8 @@ function buildTotalsSection(
     tbody.appendChild(tr);
   }
   table.appendChild(tbody);
-  section.appendChild(table);
+  scrollRegion.appendChild(table);
+  section.appendChild(scrollRegion);
 
   return section;
 }

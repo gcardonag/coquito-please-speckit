@@ -259,6 +259,13 @@ description: "Task list for 007-responsive-layout"
   - the auth callback branches: code exchange success and failure, state mismatch, and redirect to login
   - the health banner branches
   - header rendering for chef and non-chef users
+- [X] T045 Fix the CI-only failures seen on PR #22 (Linux reserves 15px for classic scrollbars):
+  - **Cancel dialog:** sized with `100%` rather than `100vw` in frontend/src/pages/manage-request/manage-request.css, so it keeps its 16px margin when a scrollbar is present.
+  - **Cook view totals table:** wrapped in a focusable, labelled `div.totals-scroll` region in frontend/src/components/ingredient-list/ingredient-list.ts (axe `scrollable-region-focusable`). Covered by a 320px Cypress test and a new frontend/src/tests/components/ingredient-list.test.ts.
+  - **Cypress setup:**
+    - Classic scrollbars are now forced in all Cypress runs (frontend/cypress/support/e2e.ts), so macOS runs match CI.
+    - axe violations are printed to the terminal through a `log` task (frontend/cypress.config.ts).
+    - Viewport assertions in frontend/cypress/e2e/responsive-batch-management.cy.ts allow sub-pixel differences.
 
 ---
 
