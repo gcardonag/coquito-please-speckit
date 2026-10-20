@@ -2,7 +2,7 @@
 pytest>=8.0.0
 pytest-cov>=7.1.0
 pytest-mock>=3.16.0
-pytest-benchmark>=4.0.0
+pytest-benchmark>=5.3.0
 moto[dynamodb,ses,scheduler]>=5.2.3
 python-dotenv>=1.0.0
 cryptography>=50.0.2
